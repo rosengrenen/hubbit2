@@ -1,0 +1,18 @@
+version: "3"
+services:
+  pg:
+    image: postgres:13.2
+    environment:
+      POSTGRES_DB: hubbit
+      POSTGRES_USER: hubbit
+      POSTGRES_PASSWORD: hubbit
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4:5.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: root@localhost
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - 9000:80

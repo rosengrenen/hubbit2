@@ -1,0 +1,12 @@
+[package]
+name = "backend"
+version = "0.1.0"
+authors = ["Rasmus Rosengren <rasmus.rosengren@pm.me>"]
+edition = "2018"
+
+[dependencies]
+actix-web = "3.3"
+actix-web-httpauth = "0.5"
+dotenv = "0.15"
+sqlx = { version = "0.4", features = ["runtime-actix-rustls", "postgres", "macros", "migrate", "time", "uuid", "offline"] }
+uuid = "0.8"
