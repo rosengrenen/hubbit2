@@ -1,6 +1,10 @@
 use crate::models::{MacAddress, Session};
 use crate::DbPool;
-use actix_web::{http::header::Header, web, HttpRequest, Responder};
+use actix_web::{
+  http::header::Header,
+  web::{self, ServiceConfig},
+  HttpRequest, Responder,
+};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use uuid::Uuid;
 
@@ -78,8 +82,8 @@ RETURNING *
   sqlx::query!(
     "
 INSERT INTO sessions (user_id, start_time, end_time)
-SELECT val, NOW(), NOW() + (5 * interval '1 minute')
-FROM UNNEST($1::uuid[]) as val
+SELECT user_id, NOW(), NOW() + (5 * interval '1 minute')
+FROM UNNEST($1::uuid[]) as user_id
     ",
     inactive_user_ids.as_slice()
   )
@@ -89,6 +93,6 @@ FROM UNNEST($1::uuid[]) as val
   "OK"
 }
 
-pub fn config(cfg: &mut web::ServiceConfig) {
+pub fn init(cfg: &mut ServiceConfig) {
   cfg.service(web::resource("/sessions").route(web::post().to(add_sessions)));
 }

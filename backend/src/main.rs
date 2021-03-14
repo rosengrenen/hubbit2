@@ -1,9 +1,8 @@
-mod handlers;
+mod controllers;
 mod models;
 
 use actix_web::{App, HttpServer};
 use dotenv::dotenv;
-use handlers::config;
 use sqlx::{PgPool, Pool, Postgres};
 use std::env;
 
@@ -16,7 +15,7 @@ async fn main() -> std::io::Result<()> {
   let db_url = env::var("DATABASE_URL").unwrap();
   let pool = PgPool::connect(&db_url).await.unwrap();
 
-  HttpServer::new(move || App::new().data(pool.clone()).configure(config))
+  HttpServer::new(move || App::new().data(pool.clone()).configure(controllers::init))
     .bind("0.0.0.0:3000")?
     .run()
     .await
