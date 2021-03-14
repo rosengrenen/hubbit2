@@ -1,7 +1,57 @@
 {
   "db": "PostgreSQL",
-  "019e9855a85d5fede0c96f1c1d451d83e861cc505a64a6b2c092259412dd318f": {
-    "query": "\nUPDATE sessions\nSET end_time = NOW() + (5 * interval '1 minute')\nWHERE user_id = ANY($1) AND end_time > NOW()\nRETURNING *\n        ",
+  "450ec4904aba9cb332457850269fcf2a46114f3a62f69dddd08ac80e97026248": {
+    "query": "\nSELECT *\nFROM api_keys\nWHERE key = $1\n    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "key",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "5c0d8d724a6efc74512c6e6dd5c1884318d0c1a3f8c057493fc8a23a50fc8815": {
+    "query": "\nINSERT INTO sessions (user_id, start_time, end_time)\nSELECT val, NOW(), NOW() + (5 * interval '1 minute')\nFROM UNNEST($1::uuid[]) as val\n    ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "UuidArray"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "7bb16f0ff1a283f0166771604af03c1b4bb498881cfa9b773a2c55dec0cd03e4": {
+    "query": "\nUPDATE sessions\nSET end_time = NOW() + (5 * interval '1 minute')\nWHERE user_id = ANY($1) AND end_time > NOW()\nRETURNING *\n    ",
     "describe": {
       "columns": [
         {
@@ -50,20 +100,8 @@
       ]
     }
   },
-  "684ef48fb7db8a74ded27077c45f701511ef8ddb301aec4a79072f374a8779c2": {
-    "query": "\nINSERT INTO sessions (user_id, start_time, end_time)\nSELECT val, NOW(), NOW() + (5 * interval '1 minute')\nFROM UNNEST($1::uuid[]) as val\n            ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "UuidArray"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "a5a66e313e607a92e1331c7fc57678c67a7b701018cbd6ac4416cb20f6a48163": {
-    "query": "\nSELECT *\nFROM mac_addresses\nWHERE mac = ANY($1)\n        ",
+  "e59fea28c4973bb73a28d4f58f15dfd15c96c3b34d4c126101db393c5fd6a300": {
+    "query": "\nSELECT *\nFROM mac_addresses\nWHERE mac = ANY($1)\n    ",
     "describe": {
       "columns": [
         {
@@ -105,44 +143,6 @@
       "nullable": [
         false,
         false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "ee920bf52f8d5660a1c8164783368ca12ed806f4296447d1e1f3115f5da22318": {
-    "query": "\nSELECT *\nFROM api_keys\nWHERE key = $1\n        ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "key",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 2,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 3,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
         false,
         false,
         false,
