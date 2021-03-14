@@ -3,13 +3,11 @@ services:
   backend:
     build:
       context: backend
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgres://${PG_USERNAME}:${PG_PASSWORD}@pg/${PG_DATABASE}
     ports:
       - ${BACKEND_PORT}:3000
-    volumes:
-      - ./backend:/usr/src/app
 
   pg:
     image: postgres:13.2
@@ -17,11 +15,3 @@ services:
       POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_USER: ${PG_USERNAME}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
-
-  pgadmin:
-    image: dpage/pgadmin4:5.0
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-    ports:
-      - ${PGADMIN_PORT}:80
