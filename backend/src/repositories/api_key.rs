@@ -17,7 +17,7 @@ impl<'a> ApiKeyRepository<'a> {
       "
 SELECT *
 FROM api_keys
-WHERE key = $1
+WHERE token = $1
       ",
       key
     )

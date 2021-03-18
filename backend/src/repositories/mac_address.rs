@@ -17,7 +17,7 @@ impl<'a> MacAddressRepository<'a> {
       "
 SELECT *
 FROM mac_addresses
-WHERE mac = ANY($1)
+WHERE address = ANY($1)
       ",
       mac_addrs
     )

@@ -22,7 +22,7 @@ impl<'a> SessionRepository<'a> {
       "
 UPDATE sessions
 SET end_time = NOW() + (5 * interval '1 minute')
-WHERE mac = ANY($1) AND end_time > NOW()
+WHERE mac_address = ANY($1) AND end_time > NOW()
 RETURNING *
     ",
       macs.as_slice()
@@ -55,9 +55,9 @@ RETURNING *
 
     match sqlx::query!(
       "
-INSERT INTO sessions (user_id, mac, start_time, end_time)
-SELECT data.user_id, data.mac, NOW(), NOW() + (5 * interval '1 minute')
-FROM UNNEST($1::uuid[], $2::CHAR(17)[]) as data(user_id, mac)
+INSERT INTO sessions (user_id, mac_address, start_time, end_time)
+SELECT data.user_id, data.mac_address, NOW(), NOW() + (5 * interval '1 minute')
+FROM UNNEST($1::uuid[], $2::CHAR(17)[]) as data(user_id, mac_address)
       ",
       &inactive_user_ids,
       &inactive_macs

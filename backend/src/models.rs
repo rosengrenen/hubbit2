@@ -1,54 +1,53 @@
-use actix_web::http::header::Date;
-use sqlx::types::time::OffsetDateTime;
+use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct MacAddress {
   pub id: Uuid,
   pub user_id: Uuid,
-  pub mac: String,
-  pub description: String,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub address: String,
+  pub device_name: String,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Session {
   pub id: Uuid,
   pub user_id: Uuid,
-  pub mac: String,
-  pub start_time: OffsetDateTime,
-  pub end_time: OffsetDateTime,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub mac_address: String,
+  pub start_time: DateTime<Utc>,
+  pub end_time: DateTime<Utc>,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct UserSession {
   pub id: Uuid,
   pub user_id: Uuid,
-  pub start_time: OffsetDateTime,
-  pub end_time: OffsetDateTime,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub start_time: DateTime<Utc>,
+  pub end_time: DateTime<Utc>,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct ApiKey {
   pub id: Uuid,
-  pub key: String,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub token: String,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct StudyYear {
   pub id: Uuid,
   pub year: i32,
-  pub start_date: Date,
-  pub end_date: Date,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub start_date: NaiveDate,
+  pub end_date: NaiveDate,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -56,8 +55,8 @@ pub struct StudyPeriod {
   pub id: Uuid,
   pub year: i32,
   pub period: i32,
-  pub start_date: Date,
-  pub end_date: Date,
-  pub created_at: OffsetDateTime,
-  pub updated_at: OffsetDateTime,
+  pub start_date: NaiveDate,
+  pub end_date: NaiveDate,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
 }
