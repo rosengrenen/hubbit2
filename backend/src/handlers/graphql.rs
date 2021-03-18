@@ -7,10 +7,6 @@ use sqlx::{Pool, Postgres};
 
 use crate::schema::{Context, Schema};
 
-async fn health() -> HttpResponse {
-  HttpResponse::Ok().finish()
-}
-
 async fn playground() -> Result<HttpResponse, Error> {
   playground_handler("/graphql", None).await
 }
@@ -35,7 +31,6 @@ async fn graphql(
 
 pub fn init(config: &mut ServiceConfig) {
   config
-    .service(web::resource("/").route(web::get().to(health)))
     .service(
       web::resource("/graphql")
         .route(web::get().to(playground))

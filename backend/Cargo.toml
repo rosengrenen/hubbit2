@@ -12,5 +12,9 @@ chrono = "0.4"
 dotenv = "0.15"
 juniper = { version = "0.15", features = ["chrono"] }
 juniper_actix = "0.2"
+lazy_static = "1.4"
+reqwest = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 sqlx = { version = "0.4", features = ["runtime-actix-rustls", "postgres", "macros", "migrate", "chrono", "uuid", "offline"] }
-uuid = "0.8"
+uuid = { version = "0.8", features = ["serde"] }

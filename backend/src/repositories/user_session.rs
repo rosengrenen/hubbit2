@@ -1,9 +1,7 @@
 use crate::models::UserSession;
 use anyhow::{bail, Result};
-use sqlx::{
-  types::chrono::{DateTime, Utc},
-  Pool, Postgres,
-};
+use chrono::Local;
+use sqlx::{types::chrono::DateTime, Pool, Postgres};
 use uuid::Uuid;
 
 pub struct UserSessionRepository<'a> {
@@ -15,26 +13,10 @@ impl<'a> UserSessionRepository<'a> {
     Self { pool }
   }
 
-  pub async fn get_all(&self) -> Result<Vec<UserSession>> {
-    match sqlx::query_as!(
-      UserSession,
-      "
-SELECT *
-FROM user_sessions
-      "
-    )
-    .fetch_all(self.pool)
-    .await
-    {
-      Ok(sessions) => Ok(sessions),
-      Err(_) => bail!("Something went wrong"),
-    }
-  }
-
   pub async fn get_range(
     &self,
-    start_time: DateTime<Utc>,
-    end_time: DateTime<Utc>,
+    start_time: DateTime<Local>,
+    end_time: DateTime<Local>,
   ) -> Result<Vec<UserSession>> {
     match sqlx::query_as!(
       UserSession,

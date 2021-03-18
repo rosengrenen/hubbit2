@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
@@ -59,4 +60,17 @@ pub struct StudyPeriod {
   pub end_date: NaiveDate,
   pub created_at: DateTime<Utc>,
   pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct User {
+  pub id: Uuid,
+  pub cid: String,
+  pub nick: String,
+  #[serde(rename = "firstName")]
+  pub first_name: String,
+  #[serde(rename = "lastName")]
+  pub last_name: String,
+  #[serde(rename = "avatarUrl")]
+  pub avatar_url: String,
 }
