@@ -1,15 +1,18 @@
 use crate::models::UserSession;
 use anyhow::{bail, Result};
-use chrono::Local;
-use sqlx::{types::chrono::DateTime, Pool, Postgres};
+use sqlx::{
+  types::chrono::{DateTime, Local},
+  PgPool,
+};
 use uuid::Uuid;
 
-pub struct UserSessionRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct UserSessionRepository {
+  pool: PgPool,
 }
 
-impl<'a> UserSessionRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl UserSessionRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -28,7 +31,7 @@ WHERE end_time > $1 AND start_time < $2
       start_time,
       end_time
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(sessions) => Ok(sessions),
@@ -47,7 +50,7 @@ RETURNING *
     ",
       user_ids
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(sessions) => sessions,
@@ -73,7 +76,7 @@ FROM UNNEST($1::uuid[]) as user_id
       ",
       &inactive_user_ids
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(_) => Ok(()),

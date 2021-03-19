@@ -3,7 +3,7 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 
 use crate::repositories::{
   ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
@@ -12,12 +12,13 @@ use crate::repositories::{
 async fn update_sessions(
   mut mac_addrs: web::Json<Vec<String>>,
   req: web::HttpRequest,
-  pool: web::Data<Pool<Postgres>>,
+  pool: web::Data<PgPool>,
 ) -> HttpResponse {
-  let api_key_repo = ApiKeyRepository::new(&pool);
-  let mac_addr_repo = MacAddressRepository::new(&pool);
-  let session_repo = SessionRepository::new(&pool);
-  let user_session_repo = UserSessionRepository::new(&pool);
+  let pool = PgPool::clone(&pool);
+  let api_key_repo = ApiKeyRepository::new(pool.clone());
+  let mac_addr_repo = MacAddressRepository::new(pool.clone());
+  let session_repo = SessionRepository::new(pool.clone());
+  let user_session_repo = UserSessionRepository::new(pool);
 
   mac_addrs.sort_unstable();
   mac_addrs.dedup();

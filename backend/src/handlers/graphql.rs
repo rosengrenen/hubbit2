@@ -3,9 +3,15 @@ use actix_web::{
   Error, HttpMessage, HttpRequest, HttpResponse,
 };
 use juniper_actix::{graphiql_handler, graphql_handler, playground_handler};
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 
-use crate::schema::{Context, Schema};
+use crate::{
+  repositories::{
+    ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
+    StudyYearRepository, UserRepository, UserSessionRepository,
+  },
+  schema::{Context, ContextRepositories, Schema},
+};
 
 async fn playground() -> Result<HttpResponse, Error> {
   playground_handler("/graphql", None).await
@@ -19,10 +25,19 @@ async fn graphql(
   req: HttpRequest,
   payload: web::Payload,
   schema: web::Data<Schema>,
-  pool: web::Data<Pool<Postgres>>,
+  pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, Error> {
+  let pool = PgPool::clone(&pool);
   let context = Context {
-    pool: pool.into_inner(),
+    repos: ContextRepositories {
+      api_key: ApiKeyRepository::new(pool.clone()),
+      mac_addr: MacAddressRepository::new(pool.clone()),
+      session: SessionRepository::new(pool.clone()),
+      study_period: StudyPeriodRepository::new(pool.clone()),
+      study_year: StudyYearRepository::new(pool.clone()),
+      user: UserRepository::new(),
+      user_session: UserSessionRepository::new(pool),
+    },
     headers: req.headers().clone(),
     cookies: req.cookies().map_or(vec![], |v| v.clone()),
   };

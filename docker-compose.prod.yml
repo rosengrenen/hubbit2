@@ -15,3 +15,8 @@ services:
       POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_USER: ${PG_USERNAME}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
+
+  redis:
+    image: redis:6.2
+    ports:
+      - ${REDIS_PORT}:6379

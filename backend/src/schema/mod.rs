@@ -3,12 +3,26 @@ mod user;
 
 use actix_web::{cookie::Cookie, http::HeaderMap};
 use juniper::{graphql_object, EmptySubscription, RootNode};
-use sqlx::{Pool, Postgres};
-use std::sync::Arc;
+
+use crate::repositories::{
+  ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
+  StudyYearRepository, UserRepository, UserSessionRepository,
+};
+
+#[derive(Clone, Debug)]
+pub struct ContextRepositories {
+  pub api_key: ApiKeyRepository,
+  pub mac_addr: MacAddressRepository,
+  pub session: SessionRepository,
+  pub study_period: StudyPeriodRepository,
+  pub study_year: StudyYearRepository,
+  pub user_session: UserSessionRepository,
+  pub user: UserRepository,
+}
 
 #[derive(Clone, Debug)]
 pub struct Context {
-  pub pool: Arc<Pool<Postgres>>,
+  pub repos: ContextRepositories,
   pub headers: HeaderMap,
   pub cookies: Vec<Cookie<'static>>,
   // TODO:

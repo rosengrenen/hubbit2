@@ -1,14 +1,17 @@
 use crate::models::StudyYear;
 use anyhow::{bail, Result};
-use chrono::{DateTime, Local, TimeZone};
-use sqlx::{Pool, Postgres};
+use sqlx::{
+  types::chrono::{DateTime, Local, TimeZone},
+  PgPool,
+};
 
-pub struct StudyYearRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct StudyYearRepository {
+  pool: PgPool,
 }
 
-impl<'a> StudyYearRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl StudyYearRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -22,7 +25,7 @@ WHERE year = $1
       ",
       year
     )
-    .fetch_one(self.pool)
+    .fetch_one(&self.pool)
     .await
     {
       Ok(study_year) => study_year,

@@ -1,13 +1,14 @@
 use crate::models::MacAddress;
 use anyhow::{bail, Result};
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 
-pub struct MacAddressRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct MacAddressRepository {
+  pool: PgPool,
 }
 
-impl<'a> MacAddressRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl MacAddressRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -21,7 +22,7 @@ WHERE address = ANY($1)
       ",
       mac_addrs
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(mac_addrs) => Ok(mac_addrs),

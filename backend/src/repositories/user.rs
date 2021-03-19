@@ -3,6 +3,7 @@ use anyhow::Result;
 use reqwest::{header::AUTHORIZATION, Client, Url};
 use uuid::Uuid;
 
+#[derive(Clone, Debug)]
 pub struct UserRepository;
 
 impl UserRepository {

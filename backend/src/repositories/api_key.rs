@@ -1,13 +1,14 @@
 use crate::models::ApiKey;
 use anyhow::{bail, Result};
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 
-pub struct ApiKeyRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct ApiKeyRepository {
+  pool: PgPool,
 }
 
-impl<'a> ApiKeyRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl ApiKeyRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -21,7 +22,7 @@ WHERE token = $1
       ",
       key
     )
-    .fetch_one(self.pool)
+    .fetch_one(&self.pool)
     .await
     {
       Ok(api_key) => Ok(api_key),

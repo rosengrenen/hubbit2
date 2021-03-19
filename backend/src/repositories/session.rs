@@ -1,14 +1,15 @@
 use crate::models::Session;
 use anyhow::{bail, Result};
-use sqlx::{Pool, Postgres};
+use sqlx::PgPool;
 use uuid::Uuid;
 
-pub struct SessionRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct SessionRepository {
+  pool: PgPool,
 }
 
-impl<'a> SessionRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl SessionRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -27,7 +28,7 @@ RETURNING *
     ",
       macs.as_slice()
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(sessions) => sessions,
@@ -62,7 +63,7 @@ FROM UNNEST($1::uuid[], $2::CHAR(17)[]) as data(user_id, mac_address)
       &inactive_user_ids,
       &inactive_macs
     )
-    .fetch_all(self.pool)
+    .fetch_all(&self.pool)
     .await
     {
       Ok(_) => Ok(()),

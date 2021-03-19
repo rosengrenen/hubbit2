@@ -2,16 +2,17 @@ use crate::models::StudyPeriod;
 use anyhow::{bail, Result};
 use sqlx::{
   types::chrono::{DateTime, Local, TimeZone},
-  Pool, Postgres,
+  PgPool,
 };
 use std::convert::TryFrom;
 
-pub struct StudyPeriodRepository<'a> {
-  pool: &'a Pool<Postgres>,
+#[derive(Clone, Debug)]
+pub struct StudyPeriodRepository {
+  pool: PgPool,
 }
 
-impl<'a> StudyPeriodRepository<'a> {
-  pub fn new(pool: &'a Pool<Postgres>) -> Self {
+impl StudyPeriodRepository {
+  pub fn new(pool: PgPool) -> Self {
     Self { pool }
   }
 
@@ -31,7 +32,7 @@ WHERE year = $1 AND period = $2
       year,
       period_num
     )
-    .fetch_one(self.pool)
+    .fetch_one(&self.pool)
     .await
     {
       Ok(study_period) => study_period,

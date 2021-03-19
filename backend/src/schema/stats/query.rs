@@ -2,12 +2,7 @@ use super::{
   utils::{calculate_stats, day_start_end, month_start_end, year_start_end},
   Stat,
 };
-use crate::{
-  repositories::{
-    Period as DbPeriod, StudyPeriodRepository, StudyYearRepository, UserSessionRepository,
-  },
-  schema::Context,
-};
+use crate::{repositories::Period as DbPeriod, schema::Context};
 use chrono::{DateTime, Local, TimeZone};
 use juniper::{GraphQLEnum, GraphQLInputObject};
 use lazy_static::lazy_static;
@@ -88,11 +83,11 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
     } else if let Some(DayStatsInput { year, month, day }) = input.day {
       day_start_end(year, month as u32, day as u32)
     } else if let Some(StudyYearStatsInput { year }) = input.study_year {
-      let study_year_repo = StudyYearRepository::new(&context.pool);
-      study_year_repo.get_by_year(year).await.unwrap()
+      context.repos.study_year.get_by_year(year).await.unwrap()
     } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period {
-      let study_period_repo = StudyPeriodRepository::new(&context.pool);
-      study_period_repo
+      context
+        .repos
+        .study_period
         .get_by_year_and_period(year, period.into())
         .await
         .unwrap()
@@ -108,9 +103,10 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
       MAX_DATETIME.with_timezone(&Local),
     )
   };
-  let user_session_repo = UserSessionRepository::new(&context.pool);
 
-  let sessions = user_session_repo
+  let sessions = context
+    .repos
+    .user_session
     .get_range(start_time, end_time)
     .await
     .unwrap();
