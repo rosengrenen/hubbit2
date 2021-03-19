@@ -13,10 +13,10 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn --frozen-lockfile
-        workdir: frontend
+        working-directory: frontend
       - name: Build
         run: yarn build
-        workdir: frontend
+        working-directory: frontend
 
   test:
     name: Test
@@ -28,10 +28,10 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn --frozen-lockfile
-        workdir: frontend
+        working-directory: frontend
       - name: Test
         run: yarn test
-        workdir: frontend
+        working-directory: frontend
 
   lint:
     name: Format
@@ -43,7 +43,7 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn --frozen-lockfile
-        workdir: frontend
+        working-directory: frontend
       - name: Build
         run: yarn lint:check
-        workdir: frontend
+        working-directory: frontend
