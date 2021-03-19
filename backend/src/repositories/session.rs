@@ -36,7 +36,7 @@ RETURNING *
     };
 
     let inactive_devices = devices
-      .into_iter()
+      .iter()
       .filter(|&(user_id, _)| {
         active_sessions
           .iter()

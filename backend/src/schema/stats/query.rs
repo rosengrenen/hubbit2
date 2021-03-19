@@ -113,10 +113,13 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
 
   let mut user_sessions = HashMap::new();
   for sess in sessions {
-    user_sessions.entry(sess.user_id).or_insert(vec![]).push((
-      sess.start_time.with_timezone(&Local),
-      sess.end_time.with_timezone(&Local),
-    ));
+    user_sessions
+      .entry(sess.user_id)
+      .or_insert_with(Vec::new)
+      .push((
+        sess.start_time.with_timezone(&Local),
+        sess.end_time.with_timezone(&Local),
+      ));
   }
 
   calculate_stats(&user_sessions, start_time, end_time)

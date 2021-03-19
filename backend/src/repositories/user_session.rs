@@ -58,7 +58,7 @@ RETURNING *
     };
 
     let inactive_user_ids = user_ids
-      .into_iter()
+      .iter()
       .filter(|&user_id| {
         active_sessions
           .iter()

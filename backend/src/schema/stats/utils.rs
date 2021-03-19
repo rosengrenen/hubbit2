@@ -4,13 +4,15 @@ use chrono::{DateTime, Duration, Local, TimeZone};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+type DateTimeRange = (DateTime<Local>, DateTime<Local>);
+
 pub fn calculate_stats(
-  user_sessions: &HashMap<Uuid, Vec<(DateTime<Local>, DateTime<Local>)>>,
+  user_sessions: &HashMap<Uuid, Vec<DateTimeRange>>,
   range_start_time: DateTime<Local>,
   range_end_time: DateTime<Local>,
 ) -> Vec<Stat> {
   let mut stats = user_sessions
-    .into_iter()
+    .iter()
     .map(|(&user_id, sessions)| {
       let minutes = sessions.iter().fold(0, |prev, &(start_time, end_time)| {
         // Don't count session time outside of the range
