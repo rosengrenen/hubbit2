@@ -1,6 +1,6 @@
 on: [push, pull_request]
 
-name: "Build, test, and format backend"
+name: "Backend CI"
 
 jobs:
   check:

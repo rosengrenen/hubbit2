@@ -1,5 +1,12 @@
 version: "3"
 services:
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - ${FRONTEND_PORT}:3000
+
   backend:
     build:
       context: backend

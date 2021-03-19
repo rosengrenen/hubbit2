@@ -1,0 +1,49 @@
+on: [push, pull_request]
+
+name: "Frontend CI"
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+        workdir: frontend
+      - name: Build
+        run: yarn build
+        workdir: frontend
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+        workdir: frontend
+      - name: Test
+        run: yarn test
+        workdir: frontend
+
+  lint:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+        workdir: frontend
+      - name: Build
+        run: yarn lint:check
+        workdir: frontend

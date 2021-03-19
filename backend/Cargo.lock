@@ -546,7 +546,7 @@ dependencies = [
 
 [[package]]
 name = "backend"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -558,7 +558,6 @@ dependencies = [
  "lazy_static",
  "mobc",
  "mobc-redis",
- "redis 0.20.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1768,7 +1767,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e49c9152efd7b3d22ff03e6734e45e8ff6d15f6cf200b4defb9ba20e89bdbe1a"
 dependencies = [
  "mobc",
- "redis 0.17.0",
+ "redis",
 ]
 
 [[package]]
@@ -2191,21 +2190,6 @@ dependencies = [
  "sha1",
  "tokio",
  "tokio-util",
- "url",
-]
-
-[[package]]
-name = "redis"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eeb8f8d059ead7805e171fc22de8348a3d611c0f985aaa4f5cf6c0dfc7645407"
-dependencies = [
- "async-trait",
- "combine 4.5.2",
- "dtoa",
- "itoa",
- "percent-encoding",
- "sha1",
  "url",
 ]
 

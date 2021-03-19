@@ -1,0 +1,46 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "hubbIT frontend",
+  "main": "dist/index.js",
+  "repository": "https://github.com/rosengrenen/hubbit2",
+  "author": "Rasmus Rosengren <rasmus.rosengren@pm.me>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "clean": "rimraf .next",
+    "dev": "next dev -p $PORT",
+    "lint:check": "eslint --ext .ts,.tsx . && yarn prettier:check",
+    "lint:fix": "eslint --ext .ts,.tsx --fix . && yarn prettier:fix",
+    "prettier:check": "prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "prettier:fix": "prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "start": "next start",
+    "test": "jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
+  },
+  "dependencies": {
+    "next": "^10.0.9",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.21",
+    "@types/node": "^14.14.35",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
+    "eslint": "^7.22.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.5.4",
+    "typescript": "^4.2.3"
+  }
+}

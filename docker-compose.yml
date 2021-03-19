@@ -1,5 +1,16 @@
 version: "3"
 services:
+  frontend:
+    build:
+      context: frontend
+      dockerfile: dev.Dockerfile
+    environment:
+      PORT: ${FRONTEND_PORT}
+    network_mode: host
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+
   pg:
     image: postgres:13.2
     environment:
