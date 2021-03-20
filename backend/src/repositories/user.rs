@@ -40,7 +40,6 @@ impl UserRepository {
   pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> Result<User> {
     // Check local cache
     if let Some(user) = self.local_cache.read().await.get(&id) {
-      println!("got {} from local", id);
       return Ok(user.clone());
     }
 
@@ -54,7 +53,6 @@ impl UserRepository {
     let key = format!("user:{}", id);
     let raw_user_entry: Result<String, RedisError> = redis_conn.get(&key).await;
     if let Ok(raw_user_entry) = raw_user_entry {
-      println!("got {} from redis", id);
       if let Ok(user_entry) = serde_json::from_str::<UserEntry>(&raw_user_entry) {
         let mins_since_update = Local::now()
           .signed_duration_since(user_entry.updated_at)
