@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
@@ -63,9 +63,8 @@ pub struct StudyPeriod {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct User {
+pub struct GammaUser {
   pub id: Uuid,
-  pub cid: String,
   pub nick: String,
   #[serde(rename = "firstName")]
   pub first_name: String,
@@ -73,4 +72,27 @@ pub struct User {
   pub last_name: String,
   #[serde(rename = "avatarUrl")]
   pub avatar_url: String,
+  pub groups: Vec<GammaGroup>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GammaGroup {
+  pub active: bool,
+  #[serde(rename = "superGroup")]
+  pub super_group: GammaSuperGroup,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GammaSuperGroup {
+  pub id: Uuid,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct User {
+  pub id: Uuid,
+  pub nick: String,
+  pub first_name: String,
+  pub last_name: String,
+  pub avatar_url: String,
+  pub groups: Vec<Uuid>,
 }

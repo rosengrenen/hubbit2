@@ -9,7 +9,7 @@ use crate::repositories::{
   StudyYearRepository, UserRepository, UserSessionRepository,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ContextRepositories {
   pub api_key: ApiKeyRepository,
   pub mac_addr: MacAddressRepository,
@@ -20,7 +20,7 @@ pub struct ContextRepositories {
   pub user: UserRepository,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Context {
   pub repos: ContextRepositories,
   pub headers: HeaderMap,

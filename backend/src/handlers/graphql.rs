@@ -1,3 +1,4 @@
+use crate::RedisPool;
 use actix_web::{
   web::{self, ServiceConfig},
   Error, HttpMessage, HttpRequest, HttpResponse,
@@ -25,18 +26,20 @@ async fn graphql(
   req: HttpRequest,
   payload: web::Payload,
   schema: web::Data<Schema>,
-  pool: web::Data<PgPool>,
+  db_pool: web::Data<PgPool>,
+  redis_pool: web::Data<RedisPool>,
 ) -> Result<HttpResponse, Error> {
-  let pool = PgPool::clone(&pool);
+  let db_pool = PgPool::clone(&db_pool);
+  let redis_pool = RedisPool::clone(&redis_pool);
   let context = Context {
     repos: ContextRepositories {
-      api_key: ApiKeyRepository::new(pool.clone()),
-      mac_addr: MacAddressRepository::new(pool.clone()),
-      session: SessionRepository::new(pool.clone()),
-      study_period: StudyPeriodRepository::new(pool.clone()),
-      study_year: StudyYearRepository::new(pool.clone()),
-      user: UserRepository::new(),
-      user_session: UserSessionRepository::new(pool),
+      api_key: ApiKeyRepository::new(db_pool.clone()),
+      mac_addr: MacAddressRepository::new(db_pool.clone()),
+      session: SessionRepository::new(db_pool.clone()),
+      study_period: StudyPeriodRepository::new(db_pool.clone()),
+      study_year: StudyYearRepository::new(db_pool.clone()),
+      user: UserRepository::new(redis_pool),
+      user_session: UserSessionRepository::new(db_pool),
     },
     headers: req.headers().clone(),
     cookies: req.cookies().map_or(vec![], |v| v.clone()),

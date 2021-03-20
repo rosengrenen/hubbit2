@@ -11,8 +11,8 @@ use schema::schema;
 use sqlx::PgPool;
 use std::env;
 
-pub type MobcPool = Pool<RedisConnectionManager>;
-pub type MobcCon = Connection<RedisConnectionManager>;
+pub type RedisPool = Pool<RedisConnectionManager>;
+pub type RedisConnection = Connection<RedisConnectionManager>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

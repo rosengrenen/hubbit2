@@ -1,5 +1,3 @@
-use crate::repositories::UserRepository;
-
 use super::Context;
 use juniper::graphql_object;
 use uuid::Uuid;
@@ -15,33 +13,23 @@ impl User {
     self.id
   }
 
-  async fn cid(&self) -> String {
-    let user_repository = UserRepository::new();
-    let user = user_repository.get_by_id(self.id).await.unwrap();
-    user.cid
-  }
-
-  async fn nick(&self) -> String {
-    let user_repository = UserRepository::new();
-    let user = user_repository.get_by_id(self.id).await.unwrap();
+  async fn nick(&self, context: &Context) -> String {
+    let user = context.repos.user.get_by_id(self.id, false).await.unwrap();
     user.nick
   }
 
-  async fn first_name(&self) -> String {
-    let user_repository = UserRepository::new();
-    let user = user_repository.get_by_id(self.id).await.unwrap();
+  async fn first_name(&self, context: &Context) -> String {
+    let user = context.repos.user.get_by_id(self.id, false).await.unwrap();
     user.first_name
   }
 
-  async fn last_name(&self) -> String {
-    let user_repository = UserRepository::new();
-    let user = user_repository.get_by_id(self.id).await.unwrap();
+  async fn last_name(&self, context: &Context) -> String {
+    let user = context.repos.user.get_by_id(self.id, false).await.unwrap();
     user.last_name
   }
 
-  async fn avatar_url(&self) -> String {
-    let user_repository = UserRepository::new();
-    let user = user_repository.get_by_id(self.id).await.unwrap();
+  async fn avatar_url(&self, context: &Context) -> String {
+    let user = context.repos.user.get_by_id(self.id, false).await.unwrap();
     user.avatar_url
   }
 }
