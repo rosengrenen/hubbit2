@@ -9,6 +9,7 @@ use chrono::{DateTime, Local};
 use mobc_redis::{redis::RedisError, AsyncCommands};
 use reqwest::{header::AUTHORIZATION, Client, Url};
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -17,23 +18,28 @@ struct UserEntry {
   user: User,
 }
 
-#[derive(Clone)]
 pub struct UserRepository {
   redis_pool: RedisPool,
-  local_cache: HashMap<Uuid, User>,
+  local_cache: RwLock<HashMap<Uuid, User>>,
+}
+
+impl Clone for UserRepository {
+  fn clone(&self) -> Self {
+    Self::new(self.redis_pool.clone())
+  }
 }
 
 impl UserRepository {
   pub fn new(redis_pool: RedisPool) -> Self {
     Self {
       redis_pool,
-      local_cache: HashMap::new(),
+      local_cache: RwLock::new(HashMap::new()),
     }
   }
 
   pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> Result<User> {
     // Check local cache
-    if let Some(user) = self.local_cache.get(&id) {
+    if let Some(user) = self.local_cache.read().await.get(&id) {
       println!("got {} from local", id);
       return Ok(user.clone());
     }
@@ -54,8 +60,18 @@ impl UserRepository {
           .signed_duration_since(user_entry.updated_at)
           .num_minutes();
         if mins_since_update < 120 {
+          self
+            .local_cache
+            .write()
+            .await
+            .insert(id, user_entry.user.clone());
           return Ok(user_entry.user);
         } else if mins_since_update >= 120 && !wait_for_new_data {
+          self
+            .local_cache
+            .write()
+            .await
+            .insert(id, user_entry.user.clone());
           let key = key.clone();
           tokio::spawn(async move {
             let user = get_gamma_user(id).await.unwrap();
@@ -74,6 +90,7 @@ impl UserRepository {
     }
 
     let user = get_gamma_user(id).await.unwrap();
+    self.local_cache.write().await.insert(id, user.clone());
     let user_entry = UserEntry {
       user: user.clone(),
       updated_at: Local::now(),

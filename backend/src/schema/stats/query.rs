@@ -10,11 +10,11 @@ use std::collections::HashMap;
 
 #[derive(GraphQLInputObject)]
 pub struct StatsInput {
-  year: Option<YearStatsInput>,
-  month: Option<MonthStatsInput>,
-  day: Option<DayStatsInput>,
-  study_year: Option<StudyYearStatsInput>,
-  study_period: Option<StudyPeriodStatsInput>,
+  year_stats: Option<YearStatsInput>,
+  month_stats: Option<MonthStatsInput>,
+  day_stats: Option<DayStatsInput>,
+  study_year_stats: Option<StudyYearStatsInput>,
+  study_period_stats: Option<StudyPeriodStatsInput>,
 }
 
 #[derive(GraphQLInputObject)]
@@ -76,15 +76,15 @@ lazy_static! {
 
 pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload {
   let (start_time, end_time) = if let Some(input) = input {
-    if let Some(YearStatsInput { year }) = input.year {
+    if let Some(YearStatsInput { year }) = input.year_stats {
       year_start_end(year)
-    } else if let Some(MonthStatsInput { year, month }) = input.month {
+    } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
       month_start_end(year, month as u32)
-    } else if let Some(DayStatsInput { year, month, day }) = input.day {
+    } else if let Some(DayStatsInput { year, month, day }) = input.day_stats {
       day_start_end(year, month as u32, day as u32)
-    } else if let Some(StudyYearStatsInput { year }) = input.study_year {
+    } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
       context.repos.study_year.get_by_year(year).await.unwrap()
-    } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period {
+    } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
       context
         .repos
         .study_period
