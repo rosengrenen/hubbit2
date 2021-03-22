@@ -1,13 +1,16 @@
-mod stats;
-mod user;
+pub mod stats;
+pub mod user;
 
+use crate::{
+  repositories::{
+    ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
+    StudyYearRepository, UserRepository, UserSessionRepository,
+  },
+  services::{stats::StatsService, user::UserService},
+  RedisPool,
+};
 use actix_web::{cookie::Cookie, http::HeaderMap};
 use juniper::{graphql_object, EmptySubscription, RootNode};
-
-use crate::repositories::{
-  ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
-  StudyYearRepository, UserRepository, UserSessionRepository,
-};
 
 #[derive(Clone)]
 pub struct ContextRepositories {
@@ -21,12 +24,20 @@ pub struct ContextRepositories {
 }
 
 #[derive(Clone)]
+pub struct ContextServices {
+  pub stats: StatsService,
+  pub user: UserService,
+}
+
+#[derive(Clone)]
 pub struct Context {
   pub repos: ContextRepositories,
+  pub services: ContextServices,
   pub headers: HeaderMap,
   pub cookies: Vec<Cookie<'static>>,
   // TODO:
   // session: Option<Session>
+  pub redis_pool: RedisPool,
 }
 
 impl juniper::Context for Context {}

@@ -1,13 +1,13 @@
 pub mod query;
-mod utils;
 
 use super::{user::User, Context};
 use juniper::GraphQLObject;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, GraphQLObject)]
+#[derive(Clone, Debug, Deserialize, GraphQLObject, Serialize)]
 #[graphql(context = Context)]
 pub struct Stat {
-  user: User,
-  score: i32,
-  time: i32,
+  pub user: User,
+  pub score: i32,
+  pub time: i32,
 }

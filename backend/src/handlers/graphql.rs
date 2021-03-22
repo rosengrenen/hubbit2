@@ -11,7 +11,8 @@ use crate::{
     ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
     StudyYearRepository, UserRepository, UserSessionRepository,
   },
-  schema::{Context, ContextRepositories, Schema},
+  schema::{Context, ContextRepositories, ContextServices, Schema},
+  services::{stats::StatsService, user::UserService},
 };
 
 async fn playground() -> Result<HttpResponse, Error> {
@@ -38,11 +39,19 @@ async fn graphql(
       session: SessionRepository::new(db_pool.clone()),
       study_period: StudyPeriodRepository::new(db_pool.clone()),
       study_year: StudyYearRepository::new(db_pool.clone()),
-      user: UserRepository::new(redis_pool),
-      user_session: UserSessionRepository::new(db_pool),
+      user: UserRepository::new(),
+      user_session: UserSessionRepository::new(db_pool.clone()),
+    },
+    services: ContextServices {
+      stats: StatsService::new(
+        UserSessionRepository::new(db_pool.clone()),
+        redis_pool.clone(),
+      ),
+      user: UserService::new(UserRepository::new(), redis_pool.clone()),
     },
     headers: req.headers().clone(),
     cookies: req.cookies().map_or(vec![], |v| v.clone()),
+    redis_pool,
   };
   graphql_handler(&schema, &context, req, payload).await
 }

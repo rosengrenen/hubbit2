@@ -1,12 +1,8 @@
-use super::{
-  utils::{calculate_stats, day_start_end, month_start_end, year_start_end},
-  Stat,
-};
+use super::Stat;
 use crate::{repositories::Period as DbPeriod, schema::Context};
 use chrono::{DateTime, Local, TimeZone};
 use juniper::{GraphQLEnum, GraphQLInputObject};
 use lazy_static::lazy_static;
-use std::collections::HashMap;
 
 #[derive(GraphQLInputObject)]
 pub struct StatsInput {
@@ -41,7 +37,7 @@ struct StudyYearStatsInput {
 }
 
 #[derive(GraphQLEnum)]
-enum Period {
+pub enum Period {
   LP1,
   LP2,
   LP3,
@@ -75,52 +71,26 @@ lazy_static! {
 }
 
 pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload {
-  let (start_time, end_time) = if let Some(input) = input {
+  let stats_service = &context.services.stats;
+  let stats = if let Some(input) = input {
     if let Some(YearStatsInput { year }) = input.year_stats {
-      year_start_end(year)
+      stats_service.get_year(year).await
     } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
-      month_start_end(year, month as u32)
+      stats_service.get_month(year, month as u32).await
     } else if let Some(DayStatsInput { year, month, day }) = input.day_stats {
-      day_start_end(year, month as u32, day as u32)
+      stats_service.get_day(year, month as u32, day as u32).await
     } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
-      context.repos.study_year.get_by_year(year).await.unwrap()
+      stats_service.get_study_year(year).await
     } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
-      context
-        .repos
-        .study_period
-        .get_by_year_and_period(year, period.into())
-        .await
-        .unwrap()
+      stats_service.get_study_period(year, period.into()).await
     } else {
-      (
-        MIN_DATETIME.with_timezone(&Local),
-        MAX_DATETIME.with_timezone(&Local),
-      )
+      stats_service.get_lifetime().await
     }
   } else {
-    (
-      MIN_DATETIME.with_timezone(&Local),
-      MAX_DATETIME.with_timezone(&Local),
-    )
+    stats_service.get_lifetime().await
   };
 
-  let sessions = context
-    .repos
-    .user_session
-    .get_range(start_time, end_time)
-    .await
-    .unwrap();
-
-  let mut user_sessions = HashMap::new();
-  for sess in sessions {
-    user_sessions
-      .entry(sess.user_id)
-      .or_insert_with(Vec::new)
-      .push((
-        sess.start_time.with_timezone(&Local),
-        sess.end_time.with_timezone(&Local),
-      ));
-  }
-
-  calculate_stats(&user_sessions, start_time, end_time)
+  let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
+  stats.sort_by_key(|stat| -stat.score);
+  stats
 }
