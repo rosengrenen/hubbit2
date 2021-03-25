@@ -3,17 +3,18 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
   models::User,
   repositories::UserRepository,
-  services::util::{redis_get, redis_set},
+  services::util::{redis_get, redis_mget, redis_set},
   RedisPool,
 };
-use anyhow::Result;
+use anyhow::{bail, Result};
 use chrono::{DateTime, Local};
+use juniper::futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
-struct UserEntry {
+pub struct UserEntry {
   updated_at: DateTime<Local>,
   user: User,
 }
@@ -100,75 +101,111 @@ impl UserService {
     Ok(user)
   }
 
-  // pub async fn get_by_ids(&self, ids: &[Uuid], wait_for_new_data: bool) -> Result<Vec<User>> {
-  //   // Check local cache
-  //   let mut non_cached_ids = vec![];
-  //   let mut users = vec![];
-  //   for id in ids.iter() {
-  //     if let Some(user) = self.local_cache.read().await.get(&id) {
-  //       users.push(user.clone());
-  //     } else {
-  //       non_cached_ids.push(id);
-  //     }
-  //   }
+  pub async fn get_by_ids(&self, ids: &[Uuid], wait_for_new_data: bool) -> Result<Vec<User>> {
+    // Check local cache
+    let mut non_local_cached_ids = vec![];
+    let mut users = vec![];
+    {
+      let cache_lock = self.local_cache.lock().await;
+      for id in ids.iter() {
+        if let Some(user) = cache_lock.get(&id) {
+          match &*user.lock().await {
+            Some(user) => users.push(user.clone()),
+            None => non_local_cached_ids.push(id),
+          }
+        } else {
+          non_local_cached_ids.push(id);
+        }
+      }
+    }
 
-  //   // Check redis cache
-  //   // * If data is fresh, return it
-  //   // * If data is old and wait_for_new_data is false, return old data
-  //   //   and fetch new data in background
-  //   // * If data is old and wait_for_new_data is true, pretend that the data didn't exist
-  //   //   and do the normal routine of fetch data -> return (while storing to redis in the background)
-  //   let mut redis_conn = self.redis_pool.get().await.unwrap();
-  //   let key = format!("user:{}", id);
-  //   let raw_user_entry: Result<String, RedisError> = redis_conn.get(&key).await;
-  //   if let Ok(raw_user_entry) = raw_user_entry {
-  //     if let Ok(user_entry) = serde_json::from_str::<RedisUserEntry>(&raw_user_entry) {
-  //       let mins_since_update = Local::now()
-  //         .signed_duration_since(user_entry.updated_at)
-  //         .num_minutes();
-  //       if mins_since_update < 120 {
-  //         self
-  //           .local_cache
-  //           .write()
-  //           .await
-  //           .insert(id, user_entry.user.clone());
-  //         return Ok(user_entry.user);
-  //       } else if mins_since_update >= 120 && !wait_for_new_data {
-  //         self
-  //           .local_cache
-  //           .write()
-  //           .await
-  //           .insert(id, user_entry.user.clone());
-  //         let key = key.clone();
-  //         let user_repo = self.user_repo.clone();
-  //         tokio::spawn(async move {
-  //           let user = user_repo.get_by_id(id).await.unwrap();
-  //           let user_entry = RedisUserEntry {
-  //             user,
-  //             updated_at: Local::now(),
-  //           };
-  //           redis_conn
-  //             .set::<String, String, String>(key, serde_json::to_string(&user_entry).unwrap())
-  //             .await
-  //             .unwrap();
-  //         });
-  //         return Ok(user_entry.user);
-  //       }
-  //     }
-  //   }
+    // Check redis cache
+    // * If data is fresh, return it
+    // * If data is old and wait_for_new_data is false, return old data
+    //   and fetch new data in background
+    // * If data is old and wait_for_new_data is true, pretend that the data didn't exist
+    //   and do the normal routine of fetch data -> return (while storing to redis in the background)
+    let mut non_redis_cached_ids = vec![];
+    let keys = non_local_cached_ids
+      .iter()
+      .map(|id| format!("user:{}", id))
+      .collect::<Vec<_>>();
+    if let Ok(user_entries) =
+      redis_mget::<UserEntry>(self.redis_pool.clone(), keys.as_slice()).await
+    {
+      for (i, user_entry) in user_entries.iter().enumerate() {
+        if let Some(user_entry) = user_entry {
+          let mins_since_update = Local::now()
+            .signed_duration_since(user_entry.updated_at)
+            .num_minutes();
+          if mins_since_update < 120 {
+            users.push(user_entry.user.clone());
+          } else if mins_since_update >= 120 && !wait_for_new_data {
+            let id = user_entry.user.id;
+            let key = format!("user:{}", id);
+            let redis_pool = self.redis_pool.clone();
+            let user_repo = self.user_repo.clone();
+            tokio::spawn(async move {
+              let user = user_repo.get_by_id(id).await.unwrap().unwrap();
+              let user_entry = UserEntry {
+                user,
+                updated_at: Local::now(),
+              };
+              redis_set(redis_pool, key, user_entry).await
+            });
+          }
+        } else {
+          non_redis_cached_ids.push(non_local_cached_ids[i]);
+        }
+      }
+    }
 
-  //   let user = self.user_repo.get_by_id(id).await.unwrap();
-  //   self.local_cache.write().await.insert(id, user.clone());
-  //   let user_entry = RedisUserEntry {
-  //     user: user.clone(),
-  //     updated_at: Local::now(),
-  //   };
-  //   tokio::spawn(async move {
-  //     redis_conn
-  //       .set::<String, String, String>(key, serde_json::to_string(&user_entry).unwrap())
-  //       .await
-  //       .unwrap();
-  //   });
-  //   Ok(user)
-  // }
+    let mut futs = vec![];
+    for id in non_redis_cached_ids {
+      let user_repo = self.user_repo.clone();
+      let redis_pool = self.redis_pool.clone();
+      futs.push(async move {
+        if let Ok(Some(user)) = user_repo.get_by_id(*id).await {
+          let user_entry = UserEntry {
+            user: user.clone(),
+            updated_at: Local::now(),
+          };
+          let id = id.clone();
+          tokio::spawn(
+            async move { redis_set(redis_pool, format!("user:{}", id), user_entry).await },
+          );
+          Ok(user)
+        } else {
+          bail!("Coulnt get user")
+        }
+      })
+    }
+    let non_cached_users = join_all(futs)
+      .await
+      .into_iter()
+      .collect::<Result<Vec<_>>>()?;
+
+    for user in non_cached_users {
+      users.push(user);
+    }
+
+    {
+      let mut cache_lock = self.local_cache.lock().await;
+      for user in users.iter() {
+        cache_lock.insert(user.id, Arc::new(Mutex::new(Some(user.clone()))));
+      }
+    }
+
+    Ok(users)
+
+    // let user = self.user_repo.get_by_id(id).await.unwrap().unwrap();
+    // *user_lock = Some(user.clone());
+    // let user_entry = UserEntry {
+    //   user: user.clone(),
+    //   updated_at: Local::now(),
+    // };
+    // let redis_pool = self.redis_pool.clone();
+    // tokio::spawn(async move { redis_set(redis_pool, key, user_entry).await });
+    // Ok(user)
+  }
 }

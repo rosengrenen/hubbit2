@@ -91,6 +91,17 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
   }
   .unwrap();
 
+  // Prefect users to cache them, so that no individual looksup are needed
+  // If some lookahead is possible in the query this could be disabled if users
+  // aren't queried
+  let user_ids = stats.keys().map(|id| id.clone()).collect::<Vec<_>>();
+  context
+    .services
+    .user
+    .get_by_ids(user_ids.as_slice(), false)
+    .await
+    .unwrap();
+
   let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
   stats.sort_by_key(|stat| -stat.score);
   stats

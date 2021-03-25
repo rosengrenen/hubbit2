@@ -38,9 +38,19 @@ impl StatsService {
         for day in start_date.day()..=end_of_month.day() {
           day_futures.push(self.get_day(start_date.year(), start_month, day));
         }
+
         // Middle months
-        for month in start_month + 1..cur_month {
-          month_futures.push(self.get_month(year, month));
+        if start_date.year() != now.year() {
+          for month in start_date.month() + 1..=12 {
+            month_futures.push(self.get_month(start_date.year(), month));
+          }
+          for month in 1..cur_month {
+            month_futures.push(self.get_month(now.year(), month));
+          }
+        } else {
+          for month in start_month + 1..cur_month {
+            month_futures.push(self.get_month(start_date.year(), month));
+          }
         }
 
         // Trailing days
