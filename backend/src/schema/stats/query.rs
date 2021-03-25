@@ -88,7 +88,8 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
     }
   } else {
     stats_service.get_lifetime().await
-  };
+  }
+  .unwrap();
 
   let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
   stats.sort_by_key(|stat| -stat.score);

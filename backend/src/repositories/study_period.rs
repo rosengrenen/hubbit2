@@ -1,7 +1,8 @@
 use crate::models::StudyPeriod;
 use anyhow::{bail, Result};
+use chrono::Date;
 use sqlx::{
-  types::chrono::{DateTime, Local, TimeZone},
+  types::chrono::{Local, TimeZone},
   PgPool,
 };
 use std::convert::TryFrom;
@@ -20,7 +21,7 @@ impl StudyPeriodRepository {
     &self,
     year: i32,
     period: Period,
-  ) -> Result<(DateTime<Local>, DateTime<Local>)> {
+  ) -> Result<(Date<Local>, Date<Local>)> {
     let period_num: i32 = period.into();
     let study_period: StudyPeriod = match sqlx::query_as!(
       StudyPeriod,
@@ -39,19 +40,14 @@ WHERE year = $1 AND period = $2
       Err(_) => bail!("Something went wrong"),
     };
 
-    let start_time = Local
-      .from_local_date(&study_period.start_date)
-      .unwrap()
-      .and_hms(0, 0, 0);
-    let end_time = Local
-      .from_local_date(&study_period.end_date)
-      .unwrap()
-      .and_hms(23, 59, 59);
+    let start_date = Local.from_local_date(&study_period.start_date).unwrap();
+    let end_date = Local.from_local_date(&study_period.end_date).unwrap();
 
-    Ok((start_time, end_time))
+    Ok((start_date, end_date))
   }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub enum Period {
   LP1,
   LP2,

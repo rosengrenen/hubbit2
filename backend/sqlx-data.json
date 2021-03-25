@@ -302,54 +302,6 @@
       ]
     }
   },
-  "9f5998ab8f9486300907fe506735a8e6e2f3288c40e76cc6040c5c6f74eb3fc2": {
-    "query": "\nSELECT *\nFROM user_sessions\n      ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "user_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "start_time",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 3,
-          "name": "end_time",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
   "a4026f6a8da798923bd926c8ea8b851c8af882b734d217072dca886ddffbc947": {
     "query": "\nSELECT *\nFROM mac_addresses\nWHERE address = ANY($1)\n      ",
     "describe": {

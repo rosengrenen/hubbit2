@@ -6,7 +6,8 @@ CREATE TABLE study_periods (
   end_date DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (year, period)
+  UNIQUE (year, period),
+  CHECK (period BETWEEN 0 AND 4)
 );
 
 SELECT manage_updated_at('study_periods');

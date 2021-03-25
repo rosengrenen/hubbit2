@@ -45,6 +45,8 @@ async fn graphql(
     services: ContextServices {
       stats: StatsService::new(
         UserSessionRepository::new(db_pool.clone()),
+        StudyYearRepository::new(db_pool.clone()),
+        StudyPeriodRepository::new(db_pool.clone()),
         redis_pool.clone(),
       ),
       user: UserService::new(UserRepository::new(), redis_pool.clone()),
