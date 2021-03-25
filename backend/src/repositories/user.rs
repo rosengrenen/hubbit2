@@ -18,7 +18,6 @@ impl UserRepository {
   }
 
   pub async fn get_by_id(&self, id: Uuid) -> Result<Option<User>> {
-    println!("Getting {} from gamma", id);
     let client = Client::new();
     let res = client
       .get(Url::parse(&format!("https://gamma.chalmers.it/api/users/{}", id)).unwrap())
