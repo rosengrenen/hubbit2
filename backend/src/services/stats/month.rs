@@ -2,6 +2,7 @@ use super::{
   util::{join_stats, month_start_end},
   Stats, StatsService,
 };
+use crate::services::util::{redis_get, redis_set};
 use anyhow::Result;
 use chrono::{Datelike, Local};
 use juniper::futures::future::join_all;
@@ -34,7 +35,9 @@ impl StatsService {
     // If month is current month, work with partial month cache, which is a bit more complicated
     let key = format!("month:({},{})", year, month);
     if year == now.year() && month == now.month() {
-      let mut partial_entry: PartialMonth = self.redis_get(&key).await.unwrap_or_default();
+      let mut partial_entry: PartialMonth = redis_get(self.redis_pool.clone(), &key)
+        .await
+        .unwrap_or_default();
       let mut stats = join_all(
         (partial_entry.day + 1..=now.day())
           .map(|day| self.get_day(year, month, day))
@@ -54,12 +57,12 @@ impl StatsService {
         ..partial_entry.clone()
       };
       let redis_pool = self.redis_pool.clone();
-      tokio::spawn(async move { Self::redis_set(redis_pool, key, new_partial_entry).await });
+      tokio::spawn(async move { redis_set(redis_pool, key, new_partial_entry).await });
 
       join_stats(&mut partial_entry.stats, &todays_stats);
       Ok(partial_entry.stats)
     } else {
-      if let Ok(stats) = self.redis_get(&key).await {
+      if let Ok(stats) = redis_get(self.redis_pool.clone(), &key).await {
         return Ok(stats);
       }
 
@@ -67,7 +70,7 @@ impl StatsService {
       let stats = self.get_stats_for_range(start_time, end_time).await?;
       let stats_clone = stats.clone();
       let redis_pool = self.redis_pool.clone();
-      tokio::spawn(async move { Self::redis_set(redis_pool, key, stats_clone).await });
+      tokio::spawn(async move { redis_set(redis_pool, key, stats_clone).await });
 
       Ok(stats)
     }

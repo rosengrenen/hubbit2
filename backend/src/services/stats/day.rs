@@ -1,4 +1,5 @@
 use super::{util::day_start_end, Stats, StatsService};
+use crate::services::util::{redis_get, redis_set};
 use anyhow::Result;
 use chrono::{Local, TimeZone};
 use std::collections::HashMap;
@@ -22,7 +23,7 @@ impl StatsService {
     // Only check redis if not current day
     let key = format!("day:({},{},{})", year, month, day);
     if requested_date != now.date() {
-      if let Ok(stats) = self.redis_get::<Stats>(&key).await {
+      if let Ok(stats) = redis_get::<Stats>(self.redis_pool.clone(), &key).await {
         return Ok(stats);
       }
     }
@@ -34,7 +35,7 @@ impl StatsService {
     if requested_date != now.date() {
       let stats = stats.clone();
       let redis_pool = self.redis_pool.clone();
-      tokio::spawn(async move { Self::redis_set(redis_pool, key, stats).await });
+      tokio::spawn(async move { redis_set(redis_pool, key, stats).await });
     }
 
     Ok(stats)

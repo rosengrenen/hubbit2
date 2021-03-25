@@ -2,6 +2,7 @@ use super::{
   util::{join_stats, month_start_end},
   Stats, StatsService,
 };
+use crate::services::util::{redis_get, redis_set};
 use anyhow::Result;
 use chrono::{Datelike, Local};
 use juniper::futures::future::join_all;
@@ -68,7 +69,7 @@ impl StatsService {
       Ok(stats)
     } else {
       let key = format!("study-period:{}", year);
-      if let Ok(stats) = self.redis_get(&key).await {
+      if let Ok(stats) = redis_get(self.redis_pool.clone(), &key).await {
         return Ok(stats);
       }
 
@@ -77,7 +78,7 @@ impl StatsService {
         .await?;
       let stats_clone = stats.clone();
       let redis_pool = self.redis_pool.clone();
-      tokio::spawn(async move { Self::redis_set(redis_pool, key, stats_clone).await });
+      tokio::spawn(async move { redis_set(redis_pool, key, stats_clone).await });
 
       Ok(stats)
     }
