@@ -33,15 +33,17 @@ pub fn calculate_stats(
       let minutes = sessions.iter().fold(0, |prev, &(start_time, end_time)| {
         // Don't count session time outside of the range
         let session_minutes = if end_time > range_end_time {
-          (range_end_time - start_time).num_minutes() as i32
+          (range_end_time - start_time).num_seconds() as i32
         } else if start_time < range_start_time {
-          (end_time - range_start_time).num_minutes() as i32
+          (end_time - range_start_time).num_seconds() as i32
         } else {
-          (end_time - start_time).num_minutes() as i32
+          (end_time - start_time).num_seconds() as i32
         };
 
         prev + session_minutes
       });
+
+      let minutes = minutes / 60;
 
       (
         user_id,
