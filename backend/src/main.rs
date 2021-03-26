@@ -4,7 +4,8 @@ mod repositories;
 mod schema;
 mod services;
 
-use actix_web::{App, HttpServer};
+use actix_redis::RedisSession;
+use actix_web::{middleware, App, HttpServer};
 use dotenv::dotenv;
 use mobc::{Connection, Pool};
 use mobc_redis::{redis::Client, RedisConnectionManager};
@@ -22,15 +23,18 @@ async fn main() -> std::io::Result<()> {
   let port = env::var("PORT").unwrap();
   let db_url = env::var("DATABASE_URL").unwrap();
   let redis_url = env::var("REDIS_URL").unwrap();
+  let session_secret = env::var("SESSION_SECRET").unwrap();
 
   let db_pool = PgPool::connect(&db_url).await.unwrap();
 
-  let client = Client::open(redis_url).unwrap();
+  let client = Client::open(redis_url.clone()).unwrap();
   let manager = RedisConnectionManager::new(client);
   let redis_pool = Pool::builder().build(manager);
 
   HttpServer::new(move || {
     App::new()
+      .wrap(middleware::Logger::default())
+      .wrap(RedisSession::new(&redis_url, session_secret.as_bytes()).cookie_http_only(true))
       .data(db_pool.clone())
       .data(redis_pool.clone())
       .data(schema())
