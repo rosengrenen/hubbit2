@@ -16,11 +16,11 @@ use crate::{
 };
 
 async fn playground() -> Result<HttpResponse, Error> {
-  playground_handler("/graphql", None).await
+  playground_handler("/api/graphql", None).await
 }
 
 async fn graphiql() -> Result<HttpResponse, Error> {
-  graphiql_handler("/graphql", None).await
+  graphiql_handler("/api/graphql", None).await
 }
 
 async fn graphql(

@@ -4,7 +4,7 @@ mod repositories;
 mod schema;
 mod services;
 
-use actix_web::{middleware, App, HttpServer};
+use actix_web::{middleware, web, App, HttpServer};
 use dotenv::dotenv;
 use mobc::{Connection, Pool};
 use mobc_redis::{redis::Client, RedisConnectionManager};
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
       .data(db_pool.clone())
       .data(redis_pool.clone())
       .data(schema())
-      .configure(handlers::init)
+      .service(web::scope("/api").configure(handlers::init))
   })
   .bind(format!("0.0.0.0:{}", port))?
   .run()
