@@ -81,7 +81,7 @@ services:
       DEFAULT_CLIENT_NAME: hubbit
       DEFAULT_CLIENT_ID: hubbit
       DEFAULT_CLIENT_SECRET: hubbit
-      DEFAULT_REDIRECT_URI: http://localhost:${BACKEND_PORT}/api/auth/gamma/callback
+      DEFAULT_REDIRECT_URI: http://localhost:${BACKEND_PORT}/auth/gamma/callback
       DEFAULT_API_KEY: hubbit
 
       SERVER_PORT: 3000

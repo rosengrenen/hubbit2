@@ -1,3 +1,4 @@
+mod auth;
 mod graphql;
 mod session;
 
@@ -12,6 +13,7 @@ async fn health() -> HttpResponse {
 
 pub fn init(config: &mut ServiceConfig) {
   config.service(web::resource("/").route(web::get().to(health)));
+  auth::init(config);
   graphql::init(config);
   session::init(config);
 }
