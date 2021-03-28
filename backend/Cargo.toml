@@ -10,6 +10,7 @@ actix-web-httpauth = "0.5"
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
+env_logger = "0.8"
 juniper = { version = "0.15", features = ["chrono"] }
 juniper_actix = "0.2"
 lazy_static = "1.4"

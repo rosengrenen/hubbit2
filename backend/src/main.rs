@@ -18,6 +18,7 @@ pub type RedisConnection = Connection<RedisConnectionManager>;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   dotenv().ok();
+  env_logger::init();
 
   let port = env::var("PORT").unwrap();
   let db_url = env::var("DATABASE_URL").unwrap();
