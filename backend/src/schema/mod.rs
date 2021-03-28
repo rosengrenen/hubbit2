@@ -11,6 +11,7 @@ use crate::{
 };
 use actix_web::{cookie::Cookie, http::HeaderMap};
 use juniper::{graphql_object, EmptySubscription, RootNode};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct ContextRepositories {
@@ -35,9 +36,8 @@ pub struct Context {
   pub services: ContextServices,
   pub headers: HeaderMap,
   pub cookies: Vec<Cookie<'static>>,
-  // TODO:
-  // session: Option<Session>
   pub redis_pool: RedisPool,
+  pub user_id: Option<Uuid>,
 }
 
 impl juniper::Context for Context {}

@@ -1,29 +1,23 @@
-use crate::{
-  models::GammaUser,
-  repositories::{
-    ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
-  },
-};
+use crate::models::GammaUser;
 use actix_web::{
   web::{self, ServiceConfig},
   HttpResponse,
 };
-use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
 use chrono::Utc;
 use jsonwebtoken::{encode, EncodingKey, Header};
-use reqwest::{header::AUTHORIZATION, Client, Url};
+use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
 
 #[derive(Debug, Deserialize)]
 struct GammaTokenRes {
   access_token: String,
 }
 
+// TODO: move to a better place
 #[derive(Debug, Serialize, Deserialize)]
-struct Claims {
+pub struct Claims {
   exp: usize,
-  sub: String,
+  pub sub: String,
 }
 
 async fn gamma(auth_code: web::Json<String>) -> HttpResponse {
