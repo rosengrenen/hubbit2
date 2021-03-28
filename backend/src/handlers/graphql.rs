@@ -1,5 +1,4 @@
 use crate::RedisPool;
-use actix_session::Session;
 use actix_web::{
   web::{self, ServiceConfig},
   Error, HttpMessage, HttpRequest, HttpResponse,
@@ -30,7 +29,6 @@ async fn graphql(
   schema: web::Data<Schema>,
   db_pool: web::Data<PgPool>,
   redis_pool: web::Data<RedisPool>,
-  _session: Session,
 ) -> Result<HttpResponse, Error> {
   let db_pool = PgPool::clone(&db_pool);
   let redis_pool = RedisPool::clone(&redis_pool);

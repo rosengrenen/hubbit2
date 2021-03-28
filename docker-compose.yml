@@ -5,8 +5,11 @@ services:
       context: frontend
       dockerfile: dev.Dockerfile
     environment:
-      PORT: ${FRONTEND_PORT}
-    network_mode: host
+      PORT: 3000
+    networks:
+      - hubbit
+    ports:
+      - ${FRONTEND_PORT}:3000
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
@@ -17,6 +20,8 @@ services:
       POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_USER: ${PG_USERNAME}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
+    networks:
+      - hubbit
     ports:
       - ${PG_LOCAL_PORT}:5432
 
@@ -25,17 +30,89 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    networks:
+      - hubbit
     ports:
       - ${PGADMIN_PORT}:80
 
   redis:
     image: redis:6.2
+    networks:
+      - hubbit
     ports:
       - ${REDIS_PORT}:6379
 
   redis-ui:
     image: patrikx3/p3x-redis-ui:2021.4.162
+    networks:
+      - hubbit
     ports:
       - ${REDIS_UI_PORT}:7843
     volumes:
       - /settings
+
+  gamma-frontend:
+    image: cthit/gamma-frontend:development
+    environment:
+      HTTP_PROXY: http://gamma-backend:3000
+    depends_on:
+      - gamma-backend
+    networks:
+      - gamma
+    ports:
+      - ${LOCAL_GAMMA_FRONTEND_PORT}:3000
+
+  gamma-backend:
+    image: cthit/gamma-backend
+    environment:
+      # Default admin user name = admin
+      # Default admin password  = password
+
+      DB_USER: gamma
+      DB_PASSWORD: gamma
+      DB_HOST: gamma-db
+      DB_PORT: 5432
+      DB_NAME: gamma
+
+      REDIS_HOST: gamma-redis
+      REDIS_PASSWORD: ""
+      REDIS_PORT: 6379
+
+      DEFAULT_CLIENT_NAME: hubbit
+      DEFAULT_CLIENT_ID: hubbit
+      DEFAULT_CLIENT_SECRET: hubbit
+      DEFAULT_REDIRECT_URI: http://localhost:${BACKEND_PORT}/api/auth/gamma/callback
+      DEFAULT_API_KEY: hubbit
+
+      SERVER_PORT: 3000
+      SUCCESSFUL_LOGIN: http://localhost:${LOCAL_GAMMA_FRONTEND_PORT}
+      CORS_ALLOWED_ORIGIN: http://localhost:${LOCAL_GAMMA_FRONTEND_PORT}
+      BACKEND_URI: http://localhost:${LOCAL_GAMMA_BACKEND_PORT}/api/
+      PRODUCTION: "false"
+      COOKIE_DOMAIN: localhost
+      IS_MOCKING: "true"
+    depends_on:
+      - gamma-redis
+      - gamma-db
+    networks:
+      - gamma
+    ports:
+      - ${LOCAL_GAMMA_BACKEND_PORT}:3000
+
+  gamma-redis:
+    image: redis:5.0
+    networks:
+      - gamma
+
+  gamma-db:
+    image: postgres:10
+    environment:
+      POSTGRES_USER: gamma
+      POSTGRES_DB: gamma
+      POSTGRES_PASSWORD: gamma
+    networks:
+      - gamma
+
+networks:
+  gamma:
+  hubbit:
