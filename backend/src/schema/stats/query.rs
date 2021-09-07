@@ -91,7 +91,7 @@ pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload
   }
   .unwrap();
 
-  // Prefect users to cache them, so that no individual looksup are needed
+  // Prefetch users to cache them, so that no individual looksup are needed
   // If some lookahead is possible in the query this could be disabled if users
   // aren't queried
   let user_ids = stats.keys().map(|id| id.clone()).collect::<Vec<_>>();

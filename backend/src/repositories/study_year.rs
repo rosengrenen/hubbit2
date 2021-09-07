@@ -1,10 +1,8 @@
-use crate::models::StudyYear;
 use anyhow::{bail, Result};
-use chrono::Date;
-use sqlx::{
-  types::chrono::{Local, TimeZone},
-  PgPool,
-};
+use chrono::NaiveDate;
+use sqlx::PgPool;
+
+use crate::models::StudyYear;
 
 #[derive(Clone, Debug)]
 pub struct StudyYearRepository {
@@ -16,7 +14,7 @@ impl StudyYearRepository {
     Self { pool }
   }
 
-  pub async fn get_by_year(&self, year: i32) -> Result<(Date<Local>, Date<Local>)> {
+  pub async fn get_by_year(&self, year: i32) -> Result<(NaiveDate, NaiveDate)> {
     let study_year: StudyYear = match sqlx::query_as!(
       StudyYear,
       "
@@ -33,9 +31,6 @@ WHERE year = $1
       Err(_) => bail!("Something went wrong"),
     };
 
-    let start_date = Local.from_local_date(&study_year.start_date).unwrap();
-    let end_date = Local.from_local_date(&study_year.end_date).unwrap();
-
-    Ok((start_date, end_date))
+    Ok((study_year.start_date, study_year.end_date))
   }
 }

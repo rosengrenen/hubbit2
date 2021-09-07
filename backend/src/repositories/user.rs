@@ -48,6 +48,7 @@ impl UserRepository {
         })
         .collect(),
     };
+
     Ok(Some(user))
   }
 }

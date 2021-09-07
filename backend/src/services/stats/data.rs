@@ -8,7 +8,7 @@ use anyhow::Result;
 use chrono::{DateTime, Local};
 
 impl StatsService {
-  pub(super) async fn get_stats_for_range(
+  pub(super) async fn get_range_fresh(
     &self,
     start_time: DateTime<Local>,
     end_time: DateTime<Local>,

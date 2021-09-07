@@ -6,10 +6,7 @@ services:
       dockerfile: dev.Dockerfile
     environment:
       PORT: 3000
-    networks:
-      - hubbit
-    ports:
-      - ${FRONTEND_PORT}:3000
+    network_mode: host
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules

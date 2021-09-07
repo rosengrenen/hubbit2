@@ -176,7 +176,7 @@ impl UserService {
           );
           Ok(user)
         } else {
-          bail!("Coulnt get user")
+          bail!("Couldn't get user")
         }
       })
     }
@@ -197,15 +197,5 @@ impl UserService {
     }
 
     Ok(users)
-
-    // let user = self.user_repo.get_by_id(id).await.unwrap().unwrap();
-    // *user_lock = Some(user.clone());
-    // let user_entry = UserEntry {
-    //   user: user.clone(),
-    //   updated_at: Local::now(),
-    // };
-    // let redis_pool = self.redis_pool.clone();
-    // tokio::spawn(async move { redis_set(redis_pool, key, user_entry).await });
-    // Ok(user)
   }
 }

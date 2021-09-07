@@ -3,7 +3,7 @@ use crate::{
   models::UserSession,
   schema::{stats::Stat, user::User},
 };
-use chrono::{DateTime, Duration, Local, TimeZone};
+use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -69,26 +69,47 @@ pub fn join_stats(stats: &mut HashMap<Uuid, Stat>, other_stats: &HashMap<Uuid, S
   }
 }
 
-pub fn year_start_end(year: i32) -> (DateTime<Local>, DateTime<Local>) {
+pub fn day_time_bounds(year: i32, month: u32, day: u32) -> (DateTime<Local>, DateTime<Local>) {
+  let start_time = Local.ymd(year, month, day).and_hms(0, 0, 0);
+  let end_time = Local.ymd(year, month, day).and_hms(23, 59, 59);
+  (start_time, end_time)
+}
+
+pub fn month_time_bounds(year: i32, month: u32) -> (DateTime<Local>, DateTime<Local>) {
+  let start_time = Local.ymd(year, month as u32, 1).and_hms(0, 0, 0);
+  let end_time = if month == 12 {
+    Local.ymd(year + 1, 1, 1).and_hms(23, 59, 59)
+  } else {
+    Local.ymd(year, month + 1, 1).and_hms(0, 0, 0)
+  } - Duration::seconds(1);
+  (start_time, end_time)
+}
+
+pub fn year_time_bounds(year: i32) -> (DateTime<Local>, DateTime<Local>) {
   let start_time = Local.ymd(year, 1, 1).and_hms(0, 0, 0);
   let end_time = Local.ymd(year, 12, 31).and_hms(23, 59, 59);
   (start_time, end_time)
 }
 
-pub fn month_start_end(year: i32, month: u32) -> (DateTime<Local>, DateTime<Local>) {
-  let start_time = Local.ymd(year, month as u32, 1).and_hms(0, 0, 0);
+pub fn day_date_bounds(year: i32, month: u32, day: u32) -> (NaiveDate, NaiveDate) {
+  let start_time = Local.ymd(year, month, day).naive_local();
+  let end_time = Local.ymd(year, month as u32, day as u32).naive_local();
+  (start_time, end_time)
+}
+
+pub fn month_date_bounds(year: i32, month: u32) -> (NaiveDate, NaiveDate) {
+  let start_time = Local.ymd(year, month as u32, 1).naive_local();
   let end_time = if month == 12 {
     Local.ymd(year + 1, 1, 1).and_hms(23, 59, 59)
   } else {
     Local.ymd(year, month as u32 + 1, 1).and_hms(0, 0, 0)
   } - Duration::seconds(1);
+  let end_time = end_time.date().naive_local();
   (start_time, end_time)
 }
 
-pub fn day_start_end(year: i32, month: u32, day: u32) -> (DateTime<Local>, DateTime<Local>) {
-  let start_time = Local.ymd(year, month as u32, day as u32).and_hms(0, 0, 0);
-  let end_time = Local
-    .ymd(year, month as u32, day as u32)
-    .and_hms(23, 59, 59);
+pub fn year_date_bounds(year: i32) -> (NaiveDate, NaiveDate) {
+  let start_time = Local.ymd(year, 1, 1).naive_local();
+  let end_time = Local.ymd(year, 12, 31).naive_local();
   (start_time, end_time)
 }
