@@ -20,17 +20,26 @@ pub struct Claims {
   pub sub: String,
 }
 
-async fn gamma(auth_code: web::Json<String>) -> HttpResponse {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Lmao {
+  code: String,
+  state: String,
+}
+
+async fn gamma(lmao: web::Query<Lmao>) -> HttpResponse {
+  println!("lmao: {:?}", lmao);
+  let gamma_id = "EByLTO8JvhA7t45H2pEnu7VcgT5jlXzenptOFEo7JPSgh7HOjF7SxdjHxjdRnEPFVffuQuL4EHM";
+  let gamma_secret = "V1u73owZfifDISEHvIe4xnkstCfwOA1DVW3uG7Xry6DUPt8P8vabNwoQojJlFjL1w2QI3uGuUNy";
   let client = Client::new();
   let res = client
     .post(
       Url::parse(&format!(
         "http://localhost:8081/api/oauth/token?grant_type=authorization_code&code={}",
-        auth_code
+        lmao.code
       ))
       .unwrap(),
     )
-    .basic_auth("hubbit", Some("hubbit"))
+    .basic_auth(gamma_id, Some(gamma_secret))
     .send()
     .await
     .unwrap()
@@ -68,5 +77,5 @@ async fn gamma(auth_code: web::Json<String>) -> HttpResponse {
 }
 
 pub fn init(config: &mut ServiceConfig) {
-  config.service(web::resource("/auth/gamma").route(web::post().to(gamma)));
+  config.service(web::resource("/auth/gamma").route(web::get().to(gamma)));
 }

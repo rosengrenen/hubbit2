@@ -39,6 +39,23 @@ WHERE end_time > $1 AND start_time < $2
     }
   }
 
+  pub async fn get_active(&self) -> Result<Vec<UserSession>> {
+    match sqlx::query_as!(
+      UserSession,
+      "
+SELECT *
+FROM user_sessions
+WHERE end_time > NOW()
+    ",
+    )
+    .fetch_all(&self.pool)
+    .await
+    {
+      Ok(sessions) => Ok(sessions),
+      Err(_) => bail!("Something went wrong"),
+    }
+  }
+
   pub async fn update_sessions(&self, user_ids: &[Uuid]) -> Result<()> {
     let active_sessions: Vec<UserSession> = match sqlx::query_as!(
       UserSession,
