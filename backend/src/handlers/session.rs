@@ -55,5 +55,9 @@ async fn update_sessions(
 }
 
 pub fn init(config: &mut ServiceConfig) {
-  config.service(web::resource("/sessions").route(web::get().to(update_sessions)));
+  config.service(
+    web::resource("/sessions")
+      .route(web::post().to(update_sessions))
+      .route(web::put().to(update_sessions)),
+  );
 }

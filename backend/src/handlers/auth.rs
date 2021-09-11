@@ -18,7 +18,14 @@ async fn gamma_init_flow(
   session: Session,
   query: web::Query<GammaInitFlowQuery>,
 ) -> HttpResponse {
-  // TODO(rasmus): check if user is already logged in
+  if let Ok(Some(access_token)) = session.get::<String>("gamma_access_token") {
+    if let Ok(_) = crate::utils::gamma::get_current_user(&config, &access_token).await {
+      let url = query.from.clone().unwrap_or_else(|| "/".to_string());
+      return HttpResponse::TemporaryRedirect()
+        .header("Location", url)
+        .finish();
+    }
+  };
 
   let state: String = thread_rng()
     .sample_iter(&Alphanumeric)
@@ -86,12 +93,16 @@ async fn gamma_callback(
     _ => "/".to_string(),
   };
 
+  session.remove("gamma_from");
+  session.remove("gamma_state");
+
   HttpResponse::TemporaryRedirect()
     .header("Location", from)
     .finish()
 }
 
 pub fn init(config: &mut ServiceConfig) {
-  config.service(web::resource("/auth/gamma/login").route(web::get().to(gamma_init_flow)));
-  config.service(web::resource("/auth/gamma/callback").route(web::get().to(gamma_callback)));
+  config
+    .service(web::resource("/auth/gamma/login").route(web::get().to(gamma_init_flow)))
+    .service(web::resource("/auth/gamma/callback").route(web::get().to(gamma_callback)));
 }

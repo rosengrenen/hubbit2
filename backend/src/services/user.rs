@@ -1,28 +1,29 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{
-  models::User,
-  repositories::UserRepository,
-  services::util::{redis_get, redis_mget, redis_set},
-  RedisPool,
-};
 use anyhow::{bail, Result};
+use async_graphql::futures_util::future::join_all;
 use chrono::{DateTime, Local};
-use juniper::futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+use crate::{
+  models::GammaUser,
+  repositories::UserRepository,
+  services::util::{redis_get, redis_mget, redis_set},
+  RedisPool,
+};
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UserEntry {
   updated_at: DateTime<Local>,
-  user: User,
+  user: GammaUser,
 }
 
 pub struct UserService {
   user_repo: UserRepository,
   redis_pool: RedisPool,
-  local_cache: Mutex<HashMap<Uuid, Arc<Mutex<Option<User>>>>>,
+  local_cache: Mutex<HashMap<Uuid, Arc<Mutex<Option<GammaUser>>>>>,
 }
 
 impl Clone for UserService {
@@ -40,7 +41,7 @@ impl UserService {
     }
   }
 
-  pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> Result<User> {
+  pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> Result<GammaUser> {
     // Check local cache
     let user_entry = {
       let mut cache_lock = self.local_cache.lock().await;
@@ -101,7 +102,7 @@ impl UserService {
     Ok(user)
   }
 
-  pub async fn get_by_ids(&self, ids: &[Uuid], wait_for_new_data: bool) -> Result<Vec<User>> {
+  pub async fn get_by_ids(&self, ids: &[Uuid], wait_for_new_data: bool) -> Result<Vec<GammaUser>> {
     // Check local cache
     let mut non_local_cached_ids = vec![];
     let mut users = vec![];

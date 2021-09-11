@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
+use async_graphql::futures_util::future::join_all;
 use chrono::{Datelike, Duration, Local, NaiveDate, TimeZone};
-use juniper::futures::future::join_all;
 
 use crate::services::{
   stats::util::{day_time_bounds, month_time_bounds, year_time_bounds},

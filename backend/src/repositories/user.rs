@@ -1,4 +1,4 @@
-use crate::models::{GammaUser, User};
+use crate::{config::Config, models::GammaUser};
 use anyhow::Result;
 use lazy_static::lazy_static;
 use reqwest::{header::AUTHORIZATION, Client, Url};
@@ -10,18 +10,23 @@ lazy_static! {
 }
 
 #[derive(Clone)]
-pub struct UserRepository;
+pub struct UserRepository {
+  config: Config,
+}
 
 impl UserRepository {
-  pub fn new() -> Self {
-    Self {}
+  pub fn new(config: Config) -> Self {
+    Self { config }
   }
 
-  pub async fn get_by_id(&self, id: Uuid) -> Result<Option<User>> {
+  pub async fn get_by_id(&self, id: Uuid) -> Result<Option<GammaUser>> {
     let client = Client::new();
     let res = client
-      .get(Url::parse(&format!("https://gamma.chalmers.it/api/users/{}", id)).unwrap())
-      .header(AUTHORIZATION, &*AUTH_HEADER)
+      .get(Url::parse(&format!("{}/api/users/{}", self.config.gamma_url, id)).unwrap())
+      .header(
+        AUTHORIZATION,
+        format!("pre-shared {}", self.config.gamma_api_key),
+      )
       .send()
       .await?;
     if res.status() == 404 {
@@ -29,26 +34,7 @@ impl UserRepository {
     }
 
     let body = res.text().await?;
-    let gamma_user: GammaUser = serde_json::from_str(&body)?;
-    let user = User {
-      id,
-      nick: gamma_user.nick,
-      first_name: gamma_user.first_name,
-      last_name: gamma_user.last_name,
-      avatar_url: gamma_user.avatar_url,
-      groups: gamma_user
-        .groups
-        .iter()
-        .filter_map(|group| {
-          if group.active {
-            Some(group.super_group.id)
-          } else {
-            None
-          }
-        })
-        .collect(),
-    };
-
+    let user: GammaUser = serde_json::from_str(&body)?;
     Ok(Some(user))
   }
 }

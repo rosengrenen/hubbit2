@@ -62,7 +62,7 @@ pub struct StudyPeriod {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GammaUser {
   pub id: Uuid,
   pub nick: String,
@@ -75,24 +75,14 @@ pub struct GammaUser {
   pub groups: Vec<GammaGroup>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GammaGroup {
   pub active: bool,
   #[serde(rename = "superGroup")]
   pub super_group: GammaSuperGroup,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GammaSuperGroup {
   pub id: Uuid,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct User {
-  pub id: Uuid,
-  pub nick: String,
-  pub first_name: String,
-  pub last_name: String,
-  pub avatar_url: String,
-  pub groups: Vec<Uuid>,
 }

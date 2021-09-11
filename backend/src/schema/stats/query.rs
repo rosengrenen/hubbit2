@@ -1,10 +1,16 @@
-use super::Stat;
-use crate::{repositories::Period as DbPeriod, schema::Context};
+use async_graphql::{guard::Guard, Context, Enum, InputObject, Object};
 use chrono::{DateTime, Local, TimeZone};
-use juniper::{GraphQLEnum, GraphQLInputObject};
 use lazy_static::lazy_static;
 
-#[derive(GraphQLInputObject)]
+use crate::{
+  repositories::Period as DbPeriod,
+  schema::AuthGuard,
+  services::{stats::StatsService, user::UserService},
+};
+
+use super::Stat;
+
+#[derive(InputObject)]
 pub struct StatsInput {
   year_stats: Option<YearStatsInput>,
   month_stats: Option<MonthStatsInput>,
@@ -13,30 +19,30 @@ pub struct StatsInput {
   study_period_stats: Option<StudyPeriodStatsInput>,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(InputObject)]
 struct YearStatsInput {
   year: i32,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(InputObject)]
 struct MonthStatsInput {
   year: i32,
   month: i32,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(InputObject)]
 struct DayStatsInput {
   year: i32,
   month: i32,
   day: i32,
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(InputObject)]
 struct StudyYearStatsInput {
   year: i32,
 }
 
-#[derive(GraphQLEnum)]
+#[derive(Copy, Clone, Enum, Eq, PartialEq)]
 pub enum Period {
   LP1,
   LP2,
@@ -57,52 +63,56 @@ impl From<Period> for DbPeriod {
   }
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(InputObject)]
 struct StudyPeriodStatsInput {
   year: i32,
   period: Period,
 }
-
-pub type StatsPayload = Vec<Stat>;
 
 lazy_static! {
   static ref MIN_DATETIME: DateTime<Local> = Local.ymd(2000, 1, 1).and_hms(0, 0, 0);
   static ref MAX_DATETIME: DateTime<Local> = Local.ymd(2099, 12, 31).and_hms(23, 59, 59);
 }
 
-pub async fn stats(input: Option<StatsInput>, context: &Context) -> StatsPayload {
-  let stats_service = &context.services.stats;
-  let stats = if let Some(input) = input {
-    if let Some(YearStatsInput { year }) = input.year_stats {
-      stats_service.get_year(year).await
-    } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
-      stats_service.get_month(year, month as u32).await
-    } else if let Some(DayStatsInput { year, month, day }) = input.day_stats {
-      stats_service.get_day(year, month as u32, day as u32).await
-    } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
-      stats_service.get_study_year(year).await
-    } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
-      stats_service.get_study_period(year, period.into()).await
+#[derive(Default)]
+pub struct StatsQuery;
+
+#[Object]
+impl StatsQuery {
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats(&self, context: &Context<'_>, input: Option<StatsInput>) -> Vec<Stat> {
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = if let Some(input) = input {
+      if let Some(YearStatsInput { year }) = input.year_stats {
+        stats_service.get_year(year).await
+      } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
+        stats_service.get_month(year, month as u32).await
+      } else if let Some(DayStatsInput { year, month, day }) = input.day_stats {
+        stats_service.get_day(year, month as u32, day as u32).await
+      } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
+        stats_service.get_study_year(year).await
+      } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
+        stats_service.get_study_period(year, period.into()).await
+      } else {
+        stats_service.get_lifetime().await
+      }
     } else {
       stats_service.get_lifetime().await
     }
-  } else {
-    stats_service.get_lifetime().await
-  }
-  .unwrap();
-
-  // Prefetch users to cache them, so that no individual looksup are needed
-  // If some lookahead is possible in the query this could be disabled if users
-  // aren't queried
-  let user_ids = stats.keys().map(|id| id.clone()).collect::<Vec<_>>();
-  context
-    .services
-    .user
-    .get_by_ids(user_ids.as_slice(), false)
-    .await
     .unwrap();
 
-  let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
-  stats.sort_by_key(|stat| -stat.score);
-  stats
+    if context.look_ahead().field("user").exists() {
+      // Prefetch users to cache them if user field is queried
+      let user_service = context.data_unchecked::<UserService>();
+      let user_ids = stats.keys().map(|id| id.clone()).collect::<Vec<_>>();
+      user_service
+        .get_by_ids(user_ids.as_slice(), false)
+        .await
+        .unwrap();
+    }
+
+    let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
+    stats.sort_by_key(|stat| -stat.score);
+    stats
+  }
 }

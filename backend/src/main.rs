@@ -8,13 +8,20 @@ mod utils;
 
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
+use async_graphql::{EmptyMutation, EmptySubscription};
 use dotenv::dotenv;
 use mobc::{Connection, Pool};
 use mobc_redis::{redis::Client, RedisConnectionManager};
-use schema::schema;
 use sqlx::PgPool;
 
-use crate::config::Config;
+use crate::{
+  config::Config,
+  repositories::{
+    StudyPeriodRepository, StudyYearRepository, UserRepository, UserSessionRepository,
+  },
+  schema::{HubbitSchema, QueryRoot},
+  services::{stats::StatsService, user::UserService},
+};
 
 pub type RedisPool = Pool<RedisConnectionManager>;
 pub type RedisConnection = Connection<RedisConnectionManager>;
@@ -28,9 +35,29 @@ async fn main() -> std::io::Result<()> {
 
   let db_pool = PgPool::connect(&config.db_url).await.unwrap();
 
-  let client = Client::open(config.redis_url.clone()).unwrap();
-  let manager = RedisConnectionManager::new(client);
-  let redis_pool = Pool::builder().build(manager);
+  let redis_client = Client::open(config.redis_url.clone()).unwrap();
+  let redis_manager = RedisConnectionManager::new(redis_client);
+  let redis_pool = Pool::builder().build(redis_manager);
+
+  // Create repos
+  let user_session_repo = UserSessionRepository::new(db_pool.clone());
+  let study_year_repo = StudyYearRepository::new(db_pool.clone());
+  let study_period_repo = StudyPeriodRepository::new(db_pool.clone());
+  let user_repo = UserRepository::new(config.clone());
+
+  // Create services
+  let stats_service = StatsService::new(
+    user_session_repo.clone(),
+    study_year_repo,
+    study_period_repo,
+    redis_pool.clone(),
+  );
+  let user_service = UserService::new(user_repo, redis_pool.clone());
+  let schema = HubbitSchema::build(QueryRoot::default(), EmptyMutation, EmptySubscription)
+    .data(stats_service)
+    .data(user_service)
+    .data(user_session_repo)
+    .finish();
 
   let config_clone = config.clone();
   HttpServer::new(move || {
@@ -40,7 +67,7 @@ async fn main() -> std::io::Result<()> {
       .data(config_clone.clone())
       .data(db_pool.clone())
       .data(redis_pool.clone())
-      .data(schema())
+      .data(schema.clone())
       .service(web::scope("/api").configure(handlers::init))
   })
   .bind(format!("0.0.0.0:{}", config.port))?

@@ -1,70 +1,54 @@
+pub mod session;
 pub mod stats;
 pub mod user;
 
-use crate::{
-  repositories::{
-    ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
-    StudyYearRepository, UserRepository, UserSessionRepository,
-  },
-  services::{stats::StatsService, user::UserService},
-  RedisPool,
+use std::fmt::Display;
+
+use async_graphql::{
+  guard::Guard, Context, EmptyMutation, EmptySubscription, ErrorExtensions, MergedObject, Result,
+  Schema,
 };
-use actix_web::{cookie::Cookie, http::HeaderMap};
-use juniper::{graphql_object, EmptySubscription, RootNode};
-use uuid::Uuid;
+use async_trait::async_trait;
 
-#[derive(Clone)]
-pub struct ContextRepositories {
-  pub api_key: ApiKeyRepository,
-  pub mac_addr: MacAddressRepository,
-  pub session: SessionRepository,
-  pub study_period: StudyPeriodRepository,
-  pub study_year: StudyYearRepository,
-  pub user_session: UserSessionRepository,
-  pub user: UserRepository,
+use crate::models::GammaUser;
+
+use self::{session::query::SessionQuery, stats::query::StatsQuery};
+
+pub type HubbitSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+
+#[derive(MergedObject, Default)]
+pub struct QueryRoot(SessionQuery, StatsQuery);
+
+#[derive(Clone, Copy, Debug)]
+pub enum CustomError {
+  NotLoggedIn,
 }
 
-#[derive(Clone)]
-pub struct ContextServices {
-  pub stats: StatsService,
-  pub user: UserService,
-}
-
-#[derive(Clone)]
-pub struct Context {
-  pub repos: ContextRepositories,
-  pub services: ContextServices,
-  pub headers: HeaderMap,
-  pub cookies: Vec<Cookie<'static>>,
-  pub redis_pool: RedisPool,
-  pub user_id: Option<Uuid>,
-}
-
-impl juniper::Context for Context {}
-
-pub type Schema = RootNode<'static, Query, Mutation, EmptySubscription<Context>>;
-
-pub fn schema() -> Schema {
-  Schema::new(Query, Mutation, EmptySubscription::<Context>::new())
-}
-
-pub struct Query;
-
-#[graphql_object(context = Context)]
-impl Query {
-  async fn stats(
-    input: Option<stats::query::StatsInput>,
-    context: &Context,
-  ) -> stats::query::StatsPayload {
-    stats::query::stats(input, context).await
+impl ErrorExtensions for CustomError {
+  fn extend(&self) -> async_graphql::Error {
+    self.extend_with(|err, e| match err {
+      CustomError::NotLoggedIn => e.set("code", "NOT_LOGGED_IN"),
+    })
   }
 }
 
-pub struct Mutation;
+impl Display for CustomError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      CustomError::NotLoggedIn => write!(f, "Not logged in"),
+    }
+  }
+}
 
-#[graphql_object(context = Context)]
-impl Mutation {
-  fn _empty() -> bool {
-    false
+pub struct AuthGuard;
+
+#[async_trait]
+impl Guard for AuthGuard {
+  async fn check(&self, context: &Context<'_>) -> Result<()> {
+    if context.data_opt::<GammaUser>().is_some() {
+      Ok(())
+    } else {
+      Err(CustomError::NotLoggedIn.extend())
+    }
   }
 }
