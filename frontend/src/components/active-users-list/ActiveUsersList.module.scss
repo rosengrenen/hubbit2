@@ -1,0 +1,24 @@
+@import 'src/global-styles/vars';
+
+.activeSmurfsWrapper {
+  padding: 28px 0;
+}
+
+tr .userRow {
+  text-align: left;
+}
+
+tr .statusRow {
+  text-align: center;
+}
+
+.activeSmurfsTable {
+  min-width: 400px;
+  width: 90%;
+  margin-top: 12px;
+}
+
+td .timeCell {
+  text-align: right;
+}
+

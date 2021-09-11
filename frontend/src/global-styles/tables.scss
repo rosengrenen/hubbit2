@@ -1,0 +1,66 @@
+@import '/src/global-styles/vars';
+
+.data-table {
+  border: none;
+  overflow: hidden;
+  background-color: white;
+  border-radius: 2px;
+  border-collapse: collapse;
+
+  tr.header-row th {
+    color: white;
+  }
+
+  tr.header-row {
+    font-weight: bold;
+    background-color: $primary-color;
+  }
+
+  tr:first-child td, tr:nth-child(2) td {
+    border-top: none;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.data-table td, .data-table th {
+  padding: 0 18px 12px 18px;
+  text-align: right;
+}
+
+.data-table td:first-of-type, .data-table th:first-of-type {
+  padding-left: 24px;
+}
+
+.data-table td:last-of-type, .data-table th:last-of-type {
+  padding-right: 24px;
+}
+
+.card-shadow {
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 3px 1px -2px rgba(0,0,0,0.2),0 1px 5px 0 rgba(0,0,0,0.12);
+}
+
+.data-table th {
+  position: relative;
+  vertical-align: bottom;
+  text-overflow: ellipsis;
+  font-weight: bold;
+  line-height: 24px;
+  letter-spacing: 0;
+  height: 48px;
+  font-size: 16px;
+  color: rgba(0,0,0,0.54);
+  padding-bottom: 8px;
+  box-sizing: border-box;
+}
+.data-table td {
+  position: relative;
+  vertical-align: middle;
+  height: 48px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: 12px;
+  box-sizing: border-box;
+}

@@ -1,0 +1,18 @@
+@import 'src/global-styles/vars';
+
+.hContainer {
+  width: 100%;
+  background-color: $primary-color;
+  color: white;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-content: center;
+  box-shadow: 0 4px 10px 0px #AAAAAA;
+  font-weight: 200;
+}
+
+.title {
+  margin: auto 0;
+}
