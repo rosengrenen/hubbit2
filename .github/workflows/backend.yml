@@ -14,6 +14,8 @@ jobs:
           toolchain: stable
           override: true
       - uses: actions-rs/cargo@v1
+        env:
+          SQLX_OFFLINE: true 
         with:
           command: check
           args: --manifest-path=backend/Cargo.toml
@@ -29,6 +31,8 @@ jobs:
           toolchain: stable
           override: true
       - uses: actions-rs/cargo@v1
+        env:
+          SQLX_OFFLINE: true 
         with:
           command: test
           args: --manifest-path=backend/Cargo.toml
@@ -62,6 +66,8 @@ jobs:
           override: true
       - run: rustup component add clippy
       - uses: actions-rs/cargo@v1
+        env:
+          SQLX_OFFLINE: true 
         with:
           command: clippy
           args: --manifest-path=backend/Cargo.toml -- -D warnings

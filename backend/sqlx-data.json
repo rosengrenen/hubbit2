@@ -352,6 +352,54 @@
       ]
     }
   },
+  "baf13b8d9f37b3e4e4ecb5b088c8bf1a2bf63dcbef42005fc6cb947455d19f63": {
+    "query": "\nSELECT *\nFROM user_sessions\nWHERE end_time > NOW()\n    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "start_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "end_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "cc3e0d48436903bfd2da63609f81dd7948adf67a71ebdeb196ea00d4a03add1f": {
     "query": "\nINSERT INTO sessions (user_id, mac_address, start_time, end_time)\nSELECT data.user_id, data.mac_address, NOW(), NOW() + (5 * interval '1 minute')\nFROM UNNEST($1::uuid[], $2::CHAR(17)[]) as data(user_id, mac_address)\n      ",
     "describe": {
