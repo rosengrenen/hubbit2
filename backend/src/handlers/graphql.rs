@@ -1,7 +1,13 @@
-use std::str::FromStr;
+use actix_session::Session;
+use actix_web::{
+  web::{self, ServiceConfig},
+  Error, HttpMessage, HttpRequest, HttpResponse,
+};
+use juniper_actix::{graphiql_handler, graphql_handler, playground_handler};
+use sqlx::PgPool;
 
-use super::auth::Claims;
 use crate::{
+  config::Config,
   repositories::{
     ApiKeyRepository, MacAddressRepository, SessionRepository, StudyPeriodRepository,
     StudyYearRepository, UserRepository, UserSessionRepository,
@@ -10,16 +16,6 @@ use crate::{
   services::{stats::StatsService, user::UserService},
   RedisPool,
 };
-use actix_web::{
-  http::header::Header,
-  web::{self, ServiceConfig},
-  Error, HttpMessage, HttpRequest, HttpResponse,
-};
-use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use jsonwebtoken::{decode, DecodingKey, Validation};
-use juniper_actix::{graphiql_handler, graphql_handler, playground_handler};
-use sqlx::PgPool;
-use uuid::Uuid;
 
 async fn playground() -> Result<HttpResponse, Error> {
   playground_handler("/api/graphql", None).await
@@ -29,35 +25,24 @@ async fn graphiql() -> Result<HttpResponse, Error> {
   graphiql_handler("/api/graphql", None).await
 }
 
-fn user_id_from_req(req: &HttpRequest) -> Option<Uuid> {
-  let auth = match Authorization::<Bearer>::parse(req) {
-    Ok(auth) => auth,
-    Err(_) => return None,
-  };
-  let bearer = auth.into_scheme();
-  let token = bearer.token();
-  let jwt = match decode::<Claims>(
-    token,
-    &DecodingKey::from_secret("hubbit".as_ref()),
-    &Validation::default(),
-  ) {
-    Ok(jwt) => jwt,
-    Err(_) => return None,
-  };
-  match Uuid::from_str(&jwt.claims.sub) {
-    Ok(uuid) => Some(uuid),
-    Err(_) => None,
-  }
-}
-
 async fn graphql(
   req: HttpRequest,
   payload: web::Payload,
   schema: web::Data<Schema>,
+  config: web::Data<Config>,
   db_pool: web::Data<PgPool>,
   redis_pool: web::Data<RedisPool>,
+  session: Session,
 ) -> Result<HttpResponse, Error> {
-  let user_id = user_id_from_req(&req);
+  let user_id = match session.get::<String>("gamma_access_token") {
+    Ok(Some(access_token)) => {
+      match crate::utils::gamma::get_current_user(&config, &access_token).await {
+        Ok(user) => Some(user.id),
+        Err(_) => None,
+      }
+    }
+    _ => None,
+  };
   let db_pool = PgPool::clone(&db_pool);
   let redis_pool = RedisPool::clone(&redis_pool);
   let context = Context {
