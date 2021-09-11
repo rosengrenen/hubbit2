@@ -67,14 +67,14 @@ impl TryFrom<i32> for Period {
   }
 }
 
-impl Into<i32> for Period {
-  fn into(self) -> i32 {
-    match self {
-      Self::LP1 => 0,
-      Self::LP2 => 1,
-      Self::LP3 => 2,
-      Self::LP4 => 3,
-      Self::Summer => 4,
+impl From<Period> for i32 {
+  fn from(period: Period) -> Self {
+    match period {
+      Period::LP1 => 0,
+      Period::LP2 => 1,
+      Period::LP3 => 2,
+      Period::LP4 => 3,
+      Period::Summer => 4,
     }
   }
 }

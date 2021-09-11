@@ -19,7 +19,10 @@ async fn gamma_init_flow(
   query: web::Query<GammaInitFlowQuery>,
 ) -> HttpResponse {
   if let Ok(Some(access_token)) = session.get::<String>("gamma_access_token") {
-    if let Ok(_) = crate::utils::gamma::get_current_user(&config, &access_token).await {
+    if crate::utils::gamma::get_current_user(&config, &access_token)
+      .await
+      .is_ok()
+    {
       let url = query.from.clone().unwrap_or_else(|| "/".to_string());
       return HttpResponse::TemporaryRedirect()
         .header("Location", url)

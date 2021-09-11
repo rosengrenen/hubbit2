@@ -104,7 +104,7 @@ impl StatsQuery {
     if context.look_ahead().field("user").exists() {
       // Prefetch users to cache them if user field is queried
       let user_service = context.data_unchecked::<UserService>();
-      let user_ids = stats.keys().map(|id| id.clone()).collect::<Vec<_>>();
+      let user_ids = stats.keys().copied().collect::<Vec<_>>();
       user_service
         .get_by_ids(user_ids.as_slice(), false)
         .await

@@ -109,7 +109,7 @@ impl UserService {
     {
       let cache_lock = self.local_cache.lock().await;
       for id in ids.iter() {
-        if let Some(user) = cache_lock.get(&id) {
+        if let Some(user) = cache_lock.get(id) {
           match &*user.lock().await {
             Some(user) => users.push(user.clone()),
             None => non_local_cached_ids.push(id),
@@ -171,7 +171,7 @@ impl UserService {
             user: user.clone(),
             updated_at: Local::now(),
           };
-          let id = id.clone();
+          let id = *id;
           tokio::spawn(
             async move { redis_set(redis_pool, format!("user:{}", id), user_entry).await },
           );

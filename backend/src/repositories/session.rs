@@ -38,10 +38,9 @@ RETURNING *
     let inactive_devices = devices
       .iter()
       .filter(|&(user_id, _)| {
-        active_sessions
+        !active_sessions
           .iter()
-          .find(|&active_sess| active_sess.user_id == *user_id)
-          .is_none()
+          .any(|active_sess| active_sess.user_id == *user_id)
       })
       .map(|user| user.to_owned())
       .collect::<Vec<_>>();

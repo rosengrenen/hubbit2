@@ -41,7 +41,7 @@ impl StatsService {
     *earliest_date_lock = Some(earliest_date);
 
     let redis_pool = self.redis_pool.clone();
-    let earliest_date_clone = earliest_date.clone();
+    let earliest_date_clone = earliest_date;
     tokio::spawn(async move {
       redis_set(redis_pool, "earliest_date".to_owned(), earliest_date_clone).await
     });

@@ -65,7 +65,7 @@ pub fn join_stats(stats: &mut HashMap<Uuid, Stat>, other_stats: &HashMap<Uuid, S
         s.score += stat.score;
         s.time += stat.time;
       })
-      .or_insert(stat.clone());
+      .or_insert_with(|| stat.clone());
   }
 }
 

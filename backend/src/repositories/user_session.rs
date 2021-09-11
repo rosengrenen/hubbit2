@@ -77,10 +77,9 @@ RETURNING *
     let inactive_user_ids = user_ids
       .iter()
       .filter(|&user_id| {
-        active_sessions
+        !active_sessions
           .iter()
-          .find(|&active_sesh| active_sesh.user_id == *user_id)
-          .is_none()
+          .any(|active_sesh| active_sesh.user_id == *user_id)
       })
       .map(|user_id| user_id.to_owned())
       .collect::<Vec<Uuid>>();
