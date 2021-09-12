@@ -1,0 +1,107 @@
+tr#hookit {
+  background: url('/group-images/wanted.png');
+
+  th {
+    color: #282828;
+    font-family: "Rye";
+    font-size: 1em;
+  }
+}
+
+tr#fikit {
+  background: url('/group-images/fikit.png');
+
+  th {
+    color: white;
+    font-size: 1em;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  }
+}
+
+tr#snit {
+  background: url('/group-images/snit.png');
+
+  th {
+    color: white;
+    font-size: 1em;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  }
+}
+
+tr#prit {
+  background: url('/group-images/pritbak.png');
+
+  th {
+    color: white;
+  }
+}
+
+tr#nollkit {
+  background: url('/group-image/nollkit.png');
+
+  th {
+    opacity: 0;
+  }
+}
+
+tr#sexit {
+  background: url('/group-images/sexit.png');
+
+  th {
+    opacity: 0;
+  }
+}
+
+tr#digit {
+  background: url('/group-images/digit.png');
+
+  th {
+    color: white;
+  }
+}
+tr#styrit {
+  background: url('/group-images/styritsvagn.jpg');
+
+  th {
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  }
+}
+tr#drawit {
+  background: url('/group-images/drawit.png');
+
+  th {
+    color: white;
+  }
+}
+tr#fritid {
+  background: url('/group-images/fritid.png');
+
+  th {
+    color: white;
+  }
+}
+tr#laggit {
+  background: url('/group-images/laggit.png');
+
+  th {
+    color: white;
+  }
+}
+tr#valberedningen {
+  background: url('/group-images/valleb.png');
+
+  th {
+    color: white;
+    text-align: end;
+  }
+}
+
+tr#talperson {
+  background: url('/group-images/vidde.png');
+
+  th {
+    color: white;
+    text-align: right
+  }
+}

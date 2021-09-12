@@ -1,5 +1,6 @@
 import '../global-styles/styles.scss';
 import '../global-styles/tables.scss';
+import '../global-styles/groups.scss';
 
 import React from 'react';
 

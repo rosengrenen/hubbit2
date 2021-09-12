@@ -1,0 +1,23 @@
+.activeGroupsList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  padding: 4em 0;
+  width: 45%;
+
+  @media (max-width: 810px) {
+    width: 100%;
+  }
+}
+
+.groupBoxContainer {
+  margin: 0 0.5em 1em;
+  width: 150px;
+  flex: 1;
+  flex-basis: 150px;
+}
+
+.activeGroupsList th {
+  text-align: center;
+}
