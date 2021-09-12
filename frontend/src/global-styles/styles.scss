@@ -1,0 +1,38 @@
+@import "/src/global-styles/vars";
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0
+}
+
+h1 {
+  font-size: 52px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: $font-stack;
+  margin: 0;
+  background-color: #F1F1F1;
+}
+
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: #666;
+}
+
+.componentWrapper {
+  flex: 1;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: $font-stack;
+}

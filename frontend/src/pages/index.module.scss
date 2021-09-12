@@ -1,0 +1,15 @@
+.wrapper {
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  text-align: center;
+  padding: 2em 0;
+}
+
+.sessionsContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
