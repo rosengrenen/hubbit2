@@ -5,8 +5,7 @@ mod util;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use chrono::{DateTime, Local, TimeZone};
-use lazy_static::lazy_static;
+use chrono::{DateTime, Local};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -19,11 +18,6 @@ use crate::{
 use self::util::{day_date_bounds, month_date_bounds, year_date_bounds};
 
 pub type DateTimeRange = (DateTime<Local>, DateTime<Local>);
-
-lazy_static! {
-  pub static ref MIN_DATETIME: DateTime<Local> = Local.ymd(2000, 1, 1).and_hms(0, 0, 0);
-  pub static ref MAX_DATETIME: DateTime<Local> = Local.ymd(2099, 12, 31).and_hms(23, 59, 59);
-}
 
 pub type Stats = HashMap<Uuid, Stat>;
 pub struct StatsService {
