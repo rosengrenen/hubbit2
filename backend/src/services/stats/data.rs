@@ -1,11 +1,15 @@
-use crate::services::util::{redis_get, redis_set};
+use anyhow::Result;
+use chrono::{DateTime, Local};
+
+use crate::{
+  services::util::{redis_get, redis_set},
+  utils::{MAX_DATETIME, MIN_DATETIME},
+};
 
 use super::{
   util::{calculate_stats, map_sessions},
-  Stats, StatsService, MAX_DATETIME, MIN_DATETIME,
+  Stats, StatsService,
 };
-use anyhow::Result;
-use chrono::{DateTime, Local};
 
 impl StatsService {
   pub(super) async fn get_range_fresh(
