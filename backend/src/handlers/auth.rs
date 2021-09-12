@@ -52,7 +52,7 @@ async fn gamma_init_flow(
 
   let url = format!(
     "{}/api/oauth/authorize?response_type=code&client_id={}&state={}",
-    config.gamma_url, config.gamma_client_id, state
+    config.gamma_public_url, config.gamma_client_id, state
   );
   HttpResponse::TemporaryRedirect()
     .header("Location", url)

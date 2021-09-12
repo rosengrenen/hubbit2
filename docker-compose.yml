@@ -11,6 +11,24 @@ services:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
 
+  hubbit-backend:
+    build:
+      context: backend
+      dockerfile: dev.Dockerfile
+    environment:
+      DATABASE_URL: postgres://hubbit:hubbit@hubbit-db/hubbit
+      REDIS_URL: redis://hubbit-redis:6379
+      GAMMA_PUBLIC_URL: http://localhost:8081
+      GAMMA_INTERNAL_URL: http://gamma-backend:3000
+      GAMMA_API_KEY: hubbit
+      GAMMA_CLIENT_ID: hubbit
+      GAMMA_CLIENT_SECRET: hubbit
+    ports:
+      - ${BACKEND_PORT}:8080
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/target
+
   hubbit-db:
     image: postgres:13.2
     environment:
@@ -78,8 +96,6 @@ services:
       IS_MOCKING: "true"
     ports:
       - ${LOCAL_GAMMA_BACKEND_PORT}:3000
-    volumes:
-      - ./gamma.sql:/docker-entrypoint-initdb.d/backup.sql
 
   gamma-redis:
     image: redis:5.0

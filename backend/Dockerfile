@@ -1,4 +1,4 @@
-FROM rust:1.50
+FROM rust
 
 WORKDIR /usr/src/app
 
@@ -8,6 +8,7 @@ COPY . .
 
 RUN SQLX_OFFLINE=true cargo build --release
 
-ENV PORT=3000
+ENV PORT=8080
+EXPOSE 8080
 
 CMD cargo sqlx migrate run && cargo run --release

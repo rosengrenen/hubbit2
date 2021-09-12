@@ -12,7 +12,7 @@ pub async fn oauth2_token(config: &Config, code: &str) -> Result<GammaTokenRespo
   let client = Client::new();
   let url = format!(
     "{}/api/oauth/token?grant_type=authorization_code&code={}",
-    config.gamma_url, code
+    config.gamma_internal_url, code
   );
   let body_str = client
     .post(&url)
@@ -26,7 +26,7 @@ pub async fn oauth2_token(config: &Config, code: &str) -> Result<GammaTokenRespo
 
 pub async fn get_current_user(config: &Config, access_token: &str) -> Result<GammaUser> {
   let client = Client::new();
-  let url = format!("{}/api/users/me", config.gamma_url);
+  let url = format!("{}/api/users/me", config.gamma_internal_url);
   let body_str = client
     .get(&url)
     .bearer_auth(access_token)

@@ -22,7 +22,13 @@ impl UserRepository {
   pub async fn get_by_id(&self, id: Uuid) -> Result<Option<GammaUser>> {
     let client = Client::new();
     let res = client
-      .get(Url::parse(&format!("{}/api/users/{}", self.config.gamma_url, id)).unwrap())
+      .get(
+        Url::parse(&format!(
+          "{}/api/users/{}",
+          self.config.gamma_internal_url, id
+        ))
+        .unwrap(),
+      )
       .header(
         AUTHORIZATION,
         format!("pre-shared {}", self.config.gamma_api_key),
