@@ -1,4 +1,5 @@
-use async_graphql::{guard::Guard, Context, Object};
+use async_graphql::{guard::Guard, Context, Object, SimpleObject};
+use chrono::{DateTime, Utc};
 
 use crate::{
   repositories::UserSessionRepository,
@@ -11,14 +12,23 @@ pub struct SessionQuery;
 #[Object]
 impl SessionQuery {
   #[graphql(guard(AuthGuard()))]
-  pub async fn current_sessions(&self, context: &Context<'_>) -> Vec<User> {
+  pub async fn current_sessions(&self, context: &Context<'_>) -> Vec<ActiveSession> {
     let user_session_repo = context.data_unchecked::<UserSessionRepository>();
     let active_sessions = user_session_repo.get_active().await.unwrap();
     active_sessions
       .iter()
-      .map(|session| User {
-        id: session.user_id,
+      .map(|session| ActiveSession {
+        user: User {
+          id: session.user_id,
+        },
+        start_time: session.start_time,
       })
       .collect()
   }
+}
+
+#[derive(SimpleObject)]
+pub struct ActiveSession {
+  user: User,
+  start_time: DateTime<Utc>,
 }

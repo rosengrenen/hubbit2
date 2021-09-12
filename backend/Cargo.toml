@@ -9,7 +9,7 @@ actix-session = "0.4"
 actix-web = "3.3"
 actix-web-httpauth = "0.5"
 anyhow = "1.0"
-async-graphql = "2.9"
+async-graphql = { version = "2.9", features = ["chrono", "uuid"] }
 async-graphql-actix-web = "2.9"
 async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }

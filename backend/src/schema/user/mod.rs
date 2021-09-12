@@ -11,8 +11,8 @@ pub struct User {
 
 #[Object]
 impl User {
-  async fn id(&self) -> String {
-    self.id.to_string()
+  async fn id(&self) -> Uuid {
+    self.id
   }
 
   async fn nick(&self, context: &Context<'_>) -> String {
