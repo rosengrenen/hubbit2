@@ -20,7 +20,7 @@ use crate::{
     StudyPeriodRepository, StudyYearRepository, UserRepository, UserSessionRepository,
   },
   schema::{HubbitSchema, QueryRoot},
-  services::{stats::StatsService, user::UserService},
+  services::{hour_stats::HourStatsService, stats::StatsService, user::UserService},
 };
 
 pub type RedisPool = Pool<RedisConnectionManager>;
@@ -52,9 +52,12 @@ async fn main() -> std::io::Result<()> {
     study_period_repo,
     redis_pool.clone(),
   );
+  let hour_stats_service = HourStatsService::new(user_session_repo.clone());
   let user_service = UserService::new(user_repo, redis_pool.clone());
+
   let schema = HubbitSchema::build(QueryRoot::default(), EmptyMutation, EmptySubscription)
     .data(stats_service)
+    .data(hour_stats_service)
     .data(user_service)
     .data(user_session_repo)
     .finish();

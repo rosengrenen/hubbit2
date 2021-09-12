@@ -27,7 +27,34 @@ impl UserSessionRepository {
 SELECT *
 FROM user_sessions
 WHERE end_time > $1 AND start_time < $2
+ORDER BY start_time DESC
     ",
+      start_time,
+      end_time
+    )
+    .fetch_all(&self.pool)
+    .await
+    {
+      Ok(sessions) => Ok(sessions),
+      Err(_) => bail!("Something went wrong"),
+    }
+  }
+
+  pub async fn get_range_for_user(
+    &self,
+    start_time: DateTime<Local>,
+    end_time: DateTime<Local>,
+    user_id: Uuid,
+  ) -> Result<Vec<UserSession>> {
+    match sqlx::query_as!(
+      UserSession,
+      "
+SELECT *
+FROM user_sessions
+WHERE user_id = $1 AND end_time > $2 AND start_time < $3
+ORDER BY start_time DESC
+    ",
+      user_id,
       start_time,
       end_time
     )
@@ -46,6 +73,7 @@ WHERE end_time > $1 AND start_time < $2
 SELECT *
 FROM user_sessions
 WHERE end_time > NOW()
+ORDER BY start_time DESC
     ",
     )
     .fetch_all(&self.pool)
