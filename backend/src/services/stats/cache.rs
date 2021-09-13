@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
 use async_graphql::futures_util::future::join_all;
 use chrono::{Datelike, Duration, Local, NaiveDate, TimeZone};
 
-use crate::services::{
-  stats::util::{day_time_bounds, month_time_bounds, year_time_bounds},
-  util::{redis_get, redis_set},
+use crate::{
+  error::HubbitResult,
+  services::{
+    stats::util::{day_time_bounds, month_time_bounds, year_time_bounds},
+    util::{redis_get, redis_set},
+  },
 };
 
 use super::{util::join_stats, Stats, StatsService};
@@ -16,7 +18,7 @@ impl StatsService {
     &self,
     mut start_date: NaiveDate,
     mut end_date: NaiveDate,
-  ) -> Result<Stats> {
+  ) -> HubbitResult<Stats> {
     let now = Local::now();
     if now.naive_local() > end_date.and_hms(0, 0, 0) {
       end_date = now.date().naive_local();
@@ -58,7 +60,7 @@ impl StatsService {
 
     let mut stats = day_stats
       .into_iter()
-      .collect::<Result<Vec<Stats>>>()?
+      .collect::<HubbitResult<Vec<Stats>>>()?
       .into_iter()
       .fold(HashMap::new(), |mut prev, cur| {
         join_stats(&mut prev, &cur);
@@ -66,19 +68,19 @@ impl StatsService {
       });
     month_stats
       .into_iter()
-      .collect::<Result<Vec<Stats>>>()?
+      .collect::<HubbitResult<Vec<Stats>>>()?
       .into_iter()
       .for_each(|stat| join_stats(&mut stats, &stat));
     year_stats
       .into_iter()
-      .collect::<Result<Vec<Stats>>>()?
+      .collect::<HubbitResult<Vec<Stats>>>()?
       .into_iter()
       .for_each(|stat| join_stats(&mut stats, &stat));
 
     Ok(stats)
   }
 
-  async fn get_day_unchecked(&self, year: i32, month: u32, day: u32) -> Result<Stats> {
+  async fn get_day_unchecked(&self, year: i32, month: u32, day: u32) -> HubbitResult<Stats> {
     let now = Local::now();
     let requested_date = Local.ymd(year, month, day);
 
@@ -103,7 +105,7 @@ impl StatsService {
     Ok(stats)
   }
 
-  async fn get_month_unchecked(&self, year: i32, month: u32) -> Result<Stats> {
+  async fn get_month_unchecked(&self, year: i32, month: u32) -> HubbitResult<Stats> {
     // If month is current month, work with partial month cache, which is a bit more complicated
     let key = format!("month:({},{})", year, month);
     if let Ok(stats) = redis_get(self.redis_pool.clone(), &key).await {
@@ -119,7 +121,7 @@ impl StatsService {
     Ok(stats)
   }
 
-  async fn get_year_unchecked(&self, year: i32) -> Result<Stats> {
+  async fn get_year_unchecked(&self, year: i32) -> HubbitResult<Stats> {
     // If month is current year, work with partial year cache, which is a bit more complicated
     let key = format!("year:{}", year);
     if let Ok(stats) = redis_get(self.redis_pool.clone(), &key).await {

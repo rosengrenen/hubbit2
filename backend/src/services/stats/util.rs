@@ -1,11 +1,13 @@
-use super::DateTimeRange;
+use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone};
+use std::collections::HashMap;
+use uuid::Uuid;
+
 use crate::{
   models::UserSession,
   schema::{stats::Stat, user::User},
 };
-use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone};
-use std::collections::HashMap;
-use uuid::Uuid;
+
+use super::DateTimeRange;
 
 pub fn map_sessions(sessions: Vec<UserSession>) -> HashMap<Uuid, Vec<DateTimeRange>> {
   let mut sessions_map = HashMap::new();

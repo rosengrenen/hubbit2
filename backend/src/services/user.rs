@@ -1,6 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
 
-use anyhow::{bail, Result};
 use async_graphql::futures_util::future::join_all;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -8,6 +7,7 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::{
+  error::HubbitResult,
   models::GammaUser,
   repositories::UserRepository,
   services::util::{redis_get, redis_mget, redis_set},
@@ -41,7 +41,7 @@ impl UserService {
     }
   }
 
-  pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> Result<GammaUser> {
+  pub async fn get_by_id(&self, id: Uuid, wait_for_new_data: bool) -> HubbitResult<GammaUser> {
     // Check local cache
     let user_entry = {
       let mut cache_lock = self.local_cache.lock().await;
@@ -80,18 +80,20 @@ impl UserService {
         let redis_pool = self.redis_pool.clone();
         let user_repo = self.user_repo.clone();
         tokio::spawn(async move {
-          let user = user_repo.get_by_id(id).await.unwrap().unwrap();
-          let user_entry = UserEntry {
-            user,
-            updated_at: Local::now(),
-          };
-          redis_set(redis_pool, key, user_entry).await
+          if let Ok(user) = user_repo.get_by_id(id).await {
+            let user_entry = UserEntry {
+              user,
+              updated_at: Local::now(),
+            };
+            let _ = redis_set(redis_pool, key, user_entry).await;
+          }
         });
+
         return Ok(user_entry.user);
       }
     }
 
-    let user = self.user_repo.get_by_id(id).await.unwrap().unwrap();
+    let user = self.user_repo.get_by_id(id).await?;
     *user_lock = Some(user.clone());
     let user_entry = UserEntry {
       user: user.clone(),
@@ -102,7 +104,11 @@ impl UserService {
     Ok(user)
   }
 
-  pub async fn get_by_ids(&self, ids: &[Uuid], wait_for_new_data: bool) -> Result<Vec<GammaUser>> {
+  pub async fn get_by_ids(
+    &self,
+    ids: &[Uuid],
+    wait_for_new_data: bool,
+  ) -> HubbitResult<Vec<GammaUser>> {
     // Check local cache
     let mut non_local_cached_ids = vec![];
     let mut users = vec![];
@@ -147,12 +153,13 @@ impl UserService {
             let redis_pool = self.redis_pool.clone();
             let user_repo = self.user_repo.clone();
             tokio::spawn(async move {
-              let user = user_repo.get_by_id(id).await.unwrap().unwrap();
-              let user_entry = UserEntry {
-                user,
-                updated_at: Local::now(),
-              };
-              redis_set(redis_pool, key, user_entry).await
+              if let Ok(user) = user_repo.get_by_id(id).await {
+                let user_entry = UserEntry {
+                  user,
+                  updated_at: Local::now(),
+                };
+                let _ = redis_set(redis_pool, key, user_entry).await;
+              }
             });
           }
         } else {
@@ -166,25 +173,26 @@ impl UserService {
       let user_repo = self.user_repo.clone();
       let redis_pool = self.redis_pool.clone();
       futs.push(async move {
-        if let Ok(Some(user)) = user_repo.get_by_id(*id).await {
-          let user_entry = UserEntry {
-            user: user.clone(),
-            updated_at: Local::now(),
-          };
-          let id = *id;
-          tokio::spawn(
-            async move { redis_set(redis_pool, format!("user:{}", id), user_entry).await },
-          );
-          Ok(user)
-        } else {
-          bail!("Couldn't get user")
+        match user_repo.get_by_id(*id).await {
+          Ok(user) => {
+            let user_entry = UserEntry {
+              user: user.clone(),
+              updated_at: Local::now(),
+            };
+            let id = *id;
+            tokio::spawn(
+              async move { redis_set(redis_pool, format!("user:{}", id), user_entry).await },
+            );
+            Ok(user)
+          }
+          e => e,
         }
       })
     }
     let non_cached_users = join_all(futs)
       .await
       .into_iter()
-      .collect::<Result<Vec<_>>>()?;
+      .collect::<HubbitResult<Vec<_>>>()?;
 
     for user in non_cached_users {
       users.push(user);

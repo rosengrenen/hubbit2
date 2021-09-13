@@ -1,15 +1,16 @@
 // Shamelessly borrowed from https://github.com/async-graphql/examples/blob/f9eb27f12d4ee9d6cd1c810ab9858aa178a567b1/models/books/src/simple_broker.rs
 
-use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use futures::task::{Context, Poll};
-use futures::{Stream, StreamExt};
-use once_cell::sync::Lazy;
-use slab::Slab;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Mutex;
+
+use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use futures::task::{Context, Poll};
+use futures::{Stream, StreamExt};
+use once_cell::sync::Lazy;
+use slab::Slab;
 
 static SUBSCRIBERS: Lazy<Mutex<HashMap<TypeId, Box<dyn Any + Send>>>> = Lazy::new(Default::default);
 

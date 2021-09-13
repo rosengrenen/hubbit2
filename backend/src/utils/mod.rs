@@ -1,7 +1,7 @@
+pub mod gamma;
+
 use chrono::{DateTime, Local, TimeZone};
 use lazy_static::lazy_static;
-
-pub mod gamma;
 
 lazy_static! {
   pub static ref MIN_DATETIME: DateTime<Local> = Local.ymd(2000, 1, 1).and_hms(0, 0, 0);

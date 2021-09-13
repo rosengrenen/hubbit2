@@ -1,6 +1,6 @@
-use crate::models::ApiKey;
-use anyhow::{bail, Result};
 use sqlx::PgPool;
+
+use crate::{error::HubbitResult, models::ApiKey};
 
 #[derive(Clone, Debug)]
 pub struct ApiKeyRepository {
@@ -12,24 +12,19 @@ impl ApiKeyRepository {
     Self { pool }
   }
 
-  pub async fn get_by_key(&self, key: &str) -> Result<ApiKey> {
-    match sqlx::query_as!(
-      ApiKey,
-      "
+  pub async fn get_by_key(&self, key: &str) -> HubbitResult<ApiKey> {
+    Ok(
+      sqlx::query_as!(
+        ApiKey,
+        "
 SELECT *
 FROM api_keys
 WHERE token = $1
-      ",
-      key
+        ",
+        key
+      )
+      .fetch_one(&self.pool)
+      .await?,
     )
-    .fetch_one(&self.pool)
-    .await
-    {
-      Ok(api_key) => Ok(api_key),
-      Err(error) => match error {
-        sqlx::Error::RowNotFound => bail!("Not found"),
-        _ => bail!("Could not fetch api key"),
-      },
-    }
   }
 }

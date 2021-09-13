@@ -1,14 +1,14 @@
-use crate::{config::Config, models::GammaUser};
-use anyhow::Result;
 use reqwest::Client;
 use serde::Deserialize;
+
+use crate::{config::Config, error::HubbitResult, models::GammaUser};
 
 #[derive(Debug, Deserialize)]
 pub struct GammaTokenResponse {
   pub access_token: String,
 }
 
-pub async fn oauth2_token(config: &Config, code: &str) -> Result<GammaTokenResponse> {
+pub async fn oauth2_token(config: &Config, code: &str) -> HubbitResult<GammaTokenResponse> {
   let client = Client::new();
   let url = format!(
     "{}/api/oauth/token?grant_type=authorization_code&code={}",
@@ -24,7 +24,7 @@ pub async fn oauth2_token(config: &Config, code: &str) -> Result<GammaTokenRespo
   Ok(serde_json::from_str(&body_str)?)
 }
 
-pub async fn get_current_user(config: &Config, access_token: &str) -> Result<GammaUser> {
+pub async fn get_current_user(config: &Config, access_token: &str) -> HubbitResult<GammaUser> {
   let client = Client::new();
   let url = format!("{}/api/users/me", config.gamma_internal_url);
   let body_str = client

@@ -1,7 +1,7 @@
-use anyhow::Result;
 use chrono::{DateTime, Local};
 
 use crate::{
+  error::HubbitResult,
   services::util::{redis_get, redis_set},
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
@@ -16,7 +16,7 @@ impl StatsService {
     &self,
     start_time: DateTime<Local>,
     end_time: DateTime<Local>,
-  ) -> Result<Stats> {
+  ) -> HubbitResult<Stats> {
     let sessions = self
       .user_session_repo
       .get_range(start_time, end_time)
@@ -25,7 +25,7 @@ impl StatsService {
     Ok(calculate_stats(&sessions, start_time, end_time))
   }
 
-  pub(super) async fn get_earliest_date(&self) -> Result<DateTime<Local>> {
+  pub(super) async fn get_earliest_date(&self) -> HubbitResult<DateTime<Local>> {
     let mut earliest_date_lock = self.earliest_date.lock().await;
     if let Some(earliest_date) = *earliest_date_lock {
       return Ok(earliest_date);

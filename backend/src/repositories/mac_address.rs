@@ -1,6 +1,6 @@
-use crate::models::MacAddress;
-use anyhow::{bail, Result};
 use sqlx::PgPool;
+
+use crate::{error::HubbitResult, models::MacAddress};
 
 #[derive(Clone, Debug)]
 pub struct MacAddressRepository {
@@ -12,21 +12,19 @@ impl MacAddressRepository {
     Self { pool }
   }
 
-  pub async fn get_by_addrs(&self, mac_addrs: &[String]) -> Result<Vec<MacAddress>> {
-    match sqlx::query_as!(
-      MacAddress,
-      "
+  pub async fn get_by_addrs(&self, mac_addrs: &[String]) -> HubbitResult<Vec<MacAddress>> {
+    Ok(
+      sqlx::query_as!(
+        MacAddress,
+        "
 SELECT *
 FROM mac_addresses
 WHERE address = ANY($1)
-      ",
-      mac_addrs
+        ",
+        mac_addrs
+      )
+      .fetch_all(&self.pool)
+      .await?,
     )
-    .fetch_all(&self.pool)
-    .await
-    {
-      Ok(mac_addrs) => Ok(mac_addrs),
-      Err(_) => bail!("Something went wrong"),
-    }
   }
 }
