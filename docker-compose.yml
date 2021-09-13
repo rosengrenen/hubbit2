@@ -6,6 +6,7 @@ services:
       dockerfile: dev.Dockerfile
     environment:
       PORT: 3000
+      PROXY: http://localhost:8080
     network_mode: host
     volumes:
       - ./frontend:/usr/src/app
@@ -44,13 +45,11 @@ services:
     ports:
       - ${REDIS_PORT}:6379
 
-  pgadmin:
-    image: dpage/pgadmin4:5.7
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+  adminer:
+    image: adminer
+    restart: always
     ports:
-      - ${PGADMIN_PORT}:80
+      - ${ADMINER_PORT}:8080
 
   redis-ui:
     image: patrikx3/p3x-redis-ui:2021.4.162
