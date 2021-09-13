@@ -5,15 +5,18 @@ use actix_web::{
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
 use sqlx::PgPool;
 
-use crate::repositories::{
-  ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
+use crate::{
+  error::HubbitResult,
+  repositories::{
+    ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
+  },
 };
 
 async fn update_sessions(
   mut mac_addrs: web::Json<Vec<String>>,
   req: web::HttpRequest,
   pool: web::Data<PgPool>,
-) -> HttpResponse {
+) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
   let api_key_repo = ApiKeyRepository::new(pool.clone());
   let mac_addr_repo = MacAddressRepository::new(pool.clone());
@@ -23,19 +26,18 @@ async fn update_sessions(
   mac_addrs.sort_unstable();
   mac_addrs.dedup();
 
-  let bearer = Bearer::parse(
-    req
-      .headers()
-      .get("Authorization")
-      .expect("couldnt get auth header"),
-  )
-  .expect("couldnt parse bearer");
-  api_key_repo
-    .get_by_key(bearer.token())
-    .await
-    .expect("could not find api key");
+  let auth_header = match req.headers().get("Authorization") {
+    Some(auth_header) => auth_header,
+    _ => return Ok(HttpResponse::Unauthorized().finish()),
+  };
 
-  let mac_addrs = mac_addr_repo.get_by_addrs(&mac_addrs).await.unwrap();
+  let bearer = match Bearer::parse(auth_header) {
+    Ok(bearer) => bearer,
+    _ => return Ok(HttpResponse::Unauthorized().finish()),
+  };
+  api_key_repo.get_by_key(bearer.token()).await?;
+
+  let mac_addrs = mac_addr_repo.get_by_addrs(&mac_addrs).await?;
 
   let mut user_ids = mac_addrs
     .iter()
@@ -43,15 +45,15 @@ async fn update_sessions(
     .collect::<Vec<_>>();
   user_ids.sort_unstable();
   user_ids.dedup();
-  user_session_repo.update_sessions(&user_ids).await.unwrap();
+  user_session_repo.update_sessions(&user_ids).await?;
 
   let devices = mac_addrs
     .into_iter()
     .map(|mac_addr| (mac_addr.user_id, mac_addr.address))
     .collect::<Vec<_>>();
-  session_repo.update_sessions(&devices).await.unwrap();
+  session_repo.update_sessions(&devices).await?;
 
-  HttpResponse::Ok().finish()
+  Ok(HttpResponse::Ok().finish())
 }
 
 pub fn init(config: &mut ServiceConfig) {

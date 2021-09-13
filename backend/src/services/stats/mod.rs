@@ -4,12 +4,12 @@ mod util;
 
 use std::collections::HashMap;
 
-use anyhow::Result;
 use chrono::{DateTime, Local};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::{
+  error::HubbitResult,
   repositories::{Period, StudyPeriodRepository, StudyYearRepository, UserSessionRepository},
   schema::stats::Stat,
   RedisPool,
@@ -55,17 +55,17 @@ impl StatsService {
     }
   }
 
-  pub async fn get_day(&self, year: i32, month: u32, day: u32) -> Result<Stats> {
+  pub async fn get_day(&self, year: i32, month: u32, day: u32) -> HubbitResult<Stats> {
     let (start_date, end_date) = day_date_bounds(year, month, day);
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_month(&self, year: i32, month: u32) -> Result<Stats> {
+  pub async fn get_month(&self, year: i32, month: u32) -> HubbitResult<Stats> {
     let (start_date, end_date) = month_date_bounds(year, month);
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_study_period(&self, year: i32, period: Period) -> Result<Stats> {
+  pub async fn get_study_period(&self, year: i32, period: Period) -> HubbitResult<Stats> {
     let (start_date, end_date) = self
       .study_period_repo
       .get_by_year_and_period(year, period)
@@ -73,17 +73,17 @@ impl StatsService {
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_study_year(&self, year: i32) -> Result<Stats> {
+  pub async fn get_study_year(&self, year: i32) -> HubbitResult<Stats> {
     let (start_date, end_date) = self.study_year_repo.get_by_year(year).await?;
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_year(&self, year: i32) -> Result<Stats> {
+  pub async fn get_year(&self, year: i32) -> HubbitResult<Stats> {
     let (start_date, end_date) = year_date_bounds(year);
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_lifetime(&self) -> Result<Stats> {
+  pub async fn get_lifetime(&self) -> HubbitResult<Stats> {
     let now = Local::now();
     let earliest_date = self.get_earliest_date().await?;
     let start_date = earliest_date.date().naive_local();

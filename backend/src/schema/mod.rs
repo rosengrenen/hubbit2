@@ -64,23 +64,29 @@ impl SubscriptionRoot {
   }
 }
 
+pub type HubbitSchemaResult<T> = Result<T, HubbitSchemaError>;
+
 #[derive(Clone, Copy, Debug)]
-pub enum CustomError {
+pub enum HubbitSchemaError {
   NotLoggedIn,
+  InternalError,
 }
 
-impl ErrorExtensions for CustomError {
+impl ErrorExtensions for HubbitSchemaError {
   fn extend(&self) -> async_graphql::Error {
-    self.extend_with(|err, e| match err {
-      CustomError::NotLoggedIn => e.set("code", "NOT_LOGGED_IN"),
+    self.extend_with(|err, e| {
+      if let HubbitSchemaError::NotLoggedIn = err {
+        e.set("code", "NOT_LOGGED_IN")
+      }
     })
   }
 }
 
-impl Display for CustomError {
+impl Display for HubbitSchemaError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
-      CustomError::NotLoggedIn => write!(f, "Not logged in"),
+      HubbitSchemaError::NotLoggedIn => write!(f, "Not logged in"),
+      HubbitSchemaError::InternalError => write!(f, "Internal unrecoverable error"),
     }
   }
 }
@@ -93,7 +99,7 @@ impl Guard for AuthGuard {
     if context.data_opt::<GammaUser>().is_some() {
       Ok(())
     } else {
-      Err(CustomError::NotLoggedIn.extend())
+      Err(HubbitSchemaError::NotLoggedIn.extend())
     }
   }
 }

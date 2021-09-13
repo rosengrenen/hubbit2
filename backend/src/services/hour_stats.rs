@@ -2,6 +2,7 @@ use chrono::Timelike;
 use uuid::Uuid;
 
 use crate::{
+  error::HubbitResult,
   models::UserSession,
   repositories::UserSessionRepository,
   utils::{MAX_DATETIME, MIN_DATETIME},
@@ -16,7 +17,7 @@ impl HourStatsService {
     Self { user_session_repo }
   }
 
-  pub async fn get_for_user(&self, user_id: Uuid) -> anyhow::Result<Vec<u32>> {
+  pub async fn get_for_user(&self, user_id: Uuid) -> HubbitResult<Vec<u32>> {
     let user_sessions = self
       .user_session_repo
       .get_range_for_user(*MIN_DATETIME, *MAX_DATETIME, user_id)

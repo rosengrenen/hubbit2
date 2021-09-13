@@ -13,16 +13,29 @@ pub struct Config {
 }
 
 impl Config {
-  pub fn from_env() -> Self {
-    Self {
-      port: env::var("PORT").unwrap(),
-      db_url: env::var("DATABASE_URL").unwrap(),
-      redis_url: env::var("REDIS_URL").unwrap(),
-      gamma_public_url: env::var("GAMMA_PUBLIC_URL").unwrap(),
-      gamma_internal_url: env::var("GAMMA_INTERNAL_URL").unwrap(),
-      gamma_api_key: env::var("GAMMA_API_KEY").unwrap(),
-      gamma_client_id: env::var("GAMMA_CLIENT_ID").unwrap(),
-      gamma_client_secret: env::var("GAMMA_CLIENT_SECRET").unwrap(),
-    }
+  pub fn from_env() -> Result<Self, ConfigError> {
+    Ok(Self {
+      port: env::var("PORT").map_err(|_| ConfigError::UndefinedVar("PORT".to_string()))?,
+      db_url: env::var("DATABASE_URL")
+        .map_err(|_| ConfigError::UndefinedVar("DATABASE_URL".to_string()))?,
+      redis_url: env::var("REDIS_URL")
+        .map_err(|_| ConfigError::UndefinedVar("REDIS_URL".to_string()))?,
+      gamma_public_url: env::var("GAMMA_PUBLIC_URL")
+        .map_err(|_| ConfigError::UndefinedVar("GAMMA_PUBLIC_URL".to_string()))?,
+      gamma_internal_url: env::var("GAMMA_INTERNAL_URL")
+        .map_err(|_| ConfigError::UndefinedVar("GAMMA_INTERNAL_URL".to_string()))?,
+      gamma_api_key: env::var("GAMMA_API_KEY")
+        .map_err(|_| ConfigError::UndefinedVar("GAMMA_API_KEY".to_string()))?,
+      gamma_client_id: env::var("GAMMA_CLIENT_ID")
+        .map_err(|_| ConfigError::UndefinedVar("GAMMA_CLIENT_ID".to_string()))?,
+      gamma_client_secret: env::var("GAMMA_CLIENT_SECRET")
+        .map_err(|_| ConfigError::UndefinedVar("GAMMA_CLIENT_SECRET".to_string()))?,
+    })
   }
+}
+
+#[derive(Clone, Debug, thiserror::Error)]
+pub enum ConfigError {
+  #[error("Environment variable {0} not defined")]
+  UndefinedVar(String),
 }

@@ -1,5 +1,6 @@
 mod broker;
 mod config;
+mod error;
 mod event;
 mod handlers;
 mod models;
@@ -23,6 +24,7 @@ use uuid::Uuid;
 
 use crate::{
   config::Config,
+  error::HubbitResult,
   repositories::{
     StudyPeriodRepository, StudyYearRepository, UserRepository, UserSessionRepository,
   },
@@ -34,15 +36,15 @@ pub type RedisPool = Pool<RedisConnectionManager>;
 pub type RedisConnection = Connection<RedisConnectionManager>;
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> HubbitResult<()> {
   dotenv().ok();
   env_logger::init();
 
-  let config = Config::from_env();
+  let config = Config::from_env()?;
 
-  let db_pool = PgPool::connect(&config.db_url).await.unwrap();
+  let db_pool = PgPool::connect(&config.db_url).await?;
 
-  let redis_client = Client::open(config.redis_url.clone()).unwrap();
+  let redis_client = Client::open(config.redis_url.clone())?;
   let redis_manager = RedisConnectionManager::new(redis_client);
   let redis_pool = Pool::builder().build(redis_manager);
 
@@ -72,22 +74,24 @@ async fn main() -> std::io::Result<()> {
   tokio::spawn(async move { track_sessions(user_session_repo).await });
 
   let config_clone = config.clone();
-  HttpServer::new(move || {
-    App::new()
-      .wrap(middleware::Logger::default())
-      .wrap(CookieSession::signed(&[0; 32]).secure(false))
-      .data(config_clone.clone())
-      .data(db_pool.clone())
-      .data(redis_pool.clone())
-      .data(schema.clone())
-      .service(web::scope("/api").configure(handlers::init))
-  })
-  .bind(format!("0.0.0.0:{}", config.port))?
-  .run()
-  .await
+  Ok(
+    HttpServer::new(move || {
+      App::new()
+        .wrap(middleware::Logger::default())
+        .wrap(CookieSession::signed(&[0; 32]).secure(false))
+        .data(config_clone.clone())
+        .data(db_pool.clone())
+        .data(redis_pool.clone())
+        .data(schema.clone())
+        .service(web::scope("/api").configure(handlers::init))
+    })
+    .bind(format!("0.0.0.0:{}", config.port))?
+    .run()
+    .await?,
+  )
 }
 
-async fn track_sessions(user_session_repo: UserSessionRepository) -> anyhow::Result<()> {
+async fn track_sessions(user_session_repo: UserSessionRepository) -> HubbitResult<()> {
   let mut present_users: HashSet<_> = loop {
     match get_active_users(&user_session_repo).await {
       Ok(present_users) => break present_users,
@@ -127,7 +131,7 @@ async fn track_sessions(user_session_repo: UserSessionRepository) -> anyhow::Res
 
 async fn get_active_users(
   user_session_repo: &UserSessionRepository,
-) -> anyhow::Result<HashSet<Uuid>> {
+) -> HubbitResult<HashSet<Uuid>> {
   Ok(
     user_session_repo
       .get_active()

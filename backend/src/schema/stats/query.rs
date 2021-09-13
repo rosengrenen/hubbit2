@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 
 use crate::{
   repositories::Period as DbPeriod,
-  schema::AuthGuard,
+  schema::{AuthGuard, HubbitSchemaError, HubbitSchemaResult},
   services::{stats::StatsService, user::UserService},
 };
 
@@ -80,9 +80,13 @@ pub struct StatsQuery;
 #[Object]
 impl StatsQuery {
   #[graphql(guard(AuthGuard()))]
-  pub async fn stats(&self, context: &Context<'_>, input: Option<StatsInput>) -> Vec<Stat> {
+  pub async fn stats(
+    &self,
+    context: &Context<'_>,
+    input: Option<StatsInput>,
+  ) -> HubbitSchemaResult<Vec<Stat>> {
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats = if let Some(input) = input {
+    let stats_result = if let Some(input) = input {
       if let Some(YearStatsInput { year }) = input.year_stats {
         stats_service.get_year(year).await
       } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
@@ -98,8 +102,12 @@ impl StatsQuery {
       }
     } else {
       stats_service.get_lifetime().await
-    }
-    .unwrap();
+    };
+
+    let stats = match stats_result {
+      Ok(stats) => stats,
+      _ => return Err(HubbitSchemaError::InternalError),
+    };
 
     if context.look_ahead().field("user").exists() {
       // Prefetch users to cache them if user field is queried
@@ -108,11 +116,11 @@ impl StatsQuery {
       user_service
         .get_by_ids(user_ids.as_slice(), false)
         .await
-        .unwrap();
+        .map_err(|_| HubbitSchemaError::InternalError)?;
     }
 
     let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
     stats.sort_by_key(|stat| -stat.score);
-    stats
+    Ok(stats)
   }
 }
