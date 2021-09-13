@@ -65,13 +65,14 @@ impl User {
       .get_by_id(self.id, false)
       .await
       .map_err(|_| HubbitSchemaError::InternalError)?;
-    Ok(
-      user
-        .groups
-        .into_iter()
-        .map(|group| group.super_group.name)
-        .collect(),
-    )
+    let mut groups = user
+      .groups
+      .into_iter()
+      .filter(|group| group.active)
+      .map(|group| group.super_group.name)
+      .collect::<Vec<_>>();
+    groups.dedup();
+    Ok(groups)
   }
 
   async fn hour_stats(&self, context: &Context<'_>) -> HubbitSchemaResult<Vec<u32>> {
