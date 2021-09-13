@@ -1,29 +1,21 @@
-mod broker;
-mod config;
-mod error;
-mod event;
-mod handlers;
-mod models;
-mod repositories;
-mod schema;
-mod services;
-mod utils;
-
 use std::collections::HashSet;
 
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
 use broker::SimpleBroker;
+use async_graphql::EmptyMutation;
 use dotenv::dotenv;
-use event::UserEvent;
-use mobc::{Connection, Pool};
+use mobc::Pool;
 use mobc_redis::{redis::Client, RedisConnectionManager};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{
+use backend::{
+  broker::SimpleBroker,
   config::Config,
   error::HubbitResult,
+  event::UserEvent,
+  handlers,
   repositories::{
     device::DeviceRepository, study_period::StudyPeriodRepository, study_year::StudyYearRepository,
     user::UserRepository, user_session::UserSessionRepository,
@@ -31,9 +23,6 @@ use crate::{
   schema::{HubbitSchema, MutationRoot, QueryRoot, SubscriptionRoot},
   services::{hour_stats::HourStatsService, stats::StatsService, user::UserService},
 };
-
-pub type RedisPool = Pool<RedisConnectionManager>;
-pub type RedisConnection = Connection<RedisConnectionManager>;
 
 #[actix_web::main]
 async fn main() -> HubbitResult<()> {
