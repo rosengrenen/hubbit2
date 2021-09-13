@@ -1,22 +1,22 @@
 import React from 'react';
 
-import { User } from '../../types/User';
+import { ActiveSessions } from '../../queries/getActiveSessions';
 
 import styles from './ActiveGroupsList.module.scss';
 
 interface props {
-  users: User[];
+  sessions: ActiveSessions['currentSessions'];
 }
 
-const ActiveGroupsList = ({ users }: props) => {
+const ActiveGroupsList = ({ sessions }: props) => {
   const groupsMap: Map<string, string[]> = new Map<string, string[]>();
-  users.forEach(user => {
-    user.groups.forEach(group => {
+  sessions.forEach(session => {
+    session.user.groups.forEach(group => {
       let users = groupsMap.get(group);
       if (users) {
-        users.push(user.nick);
+        users.push(session.user.nick);
       } else {
-        users = [user.nick];
+        users = [session.user.nick];
       }
       groupsMap.set(group, users);
     });
@@ -33,7 +33,7 @@ const ActiveGroupsList = ({ users }: props) => {
               </tr>
               {groupsMap.get(group).map(user => (
                 <tr key={user}>
-                  <td className={'userRow'}>
+                  <td className={styles.userRow}>
                     <a href={'google.com'}>{user}</a>
                   </td>
                 </tr>
