@@ -1,0 +1,13 @@
+schema: schema.gql
+documents: ./src/**/*.{ts,tsx}
+generates:
+  src/__generated__/graphql.ts:
+    config:
+      strictScalars: true
+      scalars:
+        DateTime: string
+        UUID: string
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-urql
