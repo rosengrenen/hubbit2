@@ -26,7 +26,7 @@ const ActiveUsersList = ({ users }: props) => {
             {users.map(user => (
               <tr key={user.nick}>
                 <td className={styles.userRow}>
-                  <a>{user.nick}</a>
+                  <a href={'google.com'}>{user.nick}</a>
                 </td>
                 <td className={styles.timeCell}>
                   {formatTime(user.activeSince)}
