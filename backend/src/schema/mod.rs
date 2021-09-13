@@ -5,19 +5,64 @@ pub mod user;
 use std::fmt::Display;
 
 use async_graphql::{
-  guard::Guard, Context, EmptyMutation, EmptySubscription, ErrorExtensions, MergedObject, Result,
-  Schema,
+  guard::Guard, Context, EmptyMutation, ErrorExtensions, MergedObject, Result, Schema, Subscription,
 };
 use async_trait::async_trait;
+use futures::StreamExt;
 
-use crate::models::GammaUser;
+use crate::{
+  broker::SimpleBroker, event::UserEvent, models::GammaUser, repositories::UserSessionRepository,
+};
 
-use self::{session::query::SessionQuery, stats::query::StatsQuery};
+use self::{
+  session::query::{ActiveSession, SessionQuery},
+  stats::query::StatsQuery,
+  user::User,
+};
 
-pub type HubbitSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+pub type HubbitSchema = Schema<QueryRoot, EmptyMutation, SubscriptionRoot>;
 
 #[derive(MergedObject, Default)]
 pub struct QueryRoot(SessionQuery, StatsQuery);
+
+#[derive(Default)]
+pub struct SubscriptionRoot;
+
+#[Subscription]
+impl SubscriptionRoot {
+  async fn user_join(&self, context: &Context<'_>) -> impl futures::Stream<Item = ActiveSession> {
+    let user_session_repo = context.data_unchecked::<UserSessionRepository>().clone();
+    SimpleBroker::<UserEvent>::subscribe().filter_map(move |event| {
+      let user_session_repo = user_session_repo.clone();
+      async move {
+        if let UserEvent::Join(user_id) = event {
+          match user_session_repo.get_active().await {
+            Ok(active_session) => active_session
+              .into_iter()
+              .find(|session| session.user_id == user_id)
+              .map(|joined_session| ActiveSession {
+                user: User { id: user_id },
+                start_time: joined_session.start_time,
+              }),
+            _ => None,
+          }
+        } else {
+          None
+        }
+      }
+    })
+  }
+
+  async fn user_leave(&self) -> impl futures::Stream<Item = User> {
+    SimpleBroker::<UserEvent>::subscribe().filter_map(|event| async move {
+      if let UserEvent::Leave(user_id) = event {
+        Some(User { id: user_id })
+      } else {
+        None
+      }
+    })
+  }
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum CustomError {

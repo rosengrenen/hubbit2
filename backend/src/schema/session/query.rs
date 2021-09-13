@@ -29,6 +29,6 @@ impl SessionQuery {
 
 #[derive(SimpleObject)]
 pub struct ActiveSession {
-  user: User,
-  start_time: DateTime<Utc>,
+  pub user: User,
+  pub start_time: DateTime<Utc>,
 }
