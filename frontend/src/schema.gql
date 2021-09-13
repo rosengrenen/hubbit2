@@ -1,0 +1,77 @@
+type ActiveSession {
+	user: User!
+	startTime: DateTime!
+}
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+input DayStatsInput {
+	year: Int!
+	month: Int!
+	day: Int!
+}
+input MonthStatsInput {
+	year: Int!
+	month: Int!
+}
+enum Period {
+	LP1
+	LP2
+	LP3
+	LP4
+	SUMMER
+}
+type QueryRoot {
+	currentSessions: [ActiveSession!]!
+	stats(input: StatsInput): [Stat!]!
+}
+type Session {
+	startTime: DateTime!
+	endTime: DateTime!
+}
+type Stat {
+	user: User!
+	score: Int!
+	time: Int!
+}
+input StatsInput {
+	yearStats: YearStatsInput
+	monthStats: MonthStatsInput
+	dayStats: DayStatsInput
+	studyYearStats: StudyYearStatsInput
+	studyPeriodStats: StudyPeriodStatsInput
+}
+input StudyPeriodStatsInput {
+	year: Int!
+	period: Period!
+}
+input StudyYearStatsInput {
+	year: Int!
+}
+type SubscriptionRoot {
+	userJoin: ActiveSession!
+	userLeave: User!
+}
+scalar UUID
+type User {
+	id: UUID!
+	nick: String!
+	firstName: String!
+	lastName: String!
+	avatarUrl: String!
+	groups: [String!]!
+	hourStats: [Int!]!
+	recentSessions: [Session!]!
+	longestSession: Session
+}
+input YearStatsInput {
+	year: Int!
+}
+schema {
+	query: QueryRoot
+	subscription: SubscriptionRoot
+}
+

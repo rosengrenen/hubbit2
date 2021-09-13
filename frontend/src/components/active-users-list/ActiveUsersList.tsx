@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { User } from '../../types/User';
+import { ActiveSessions } from '../../queries/getActiveSessions';
 
 import styles from './ActiveUsersList.module.scss';
 
 interface props {
-  users: User[];
+  sessions: ActiveSessions['currentSessions'];
 }
 
-const ActiveUsersList = ({ users }: props) => {
+const ActiveUsersList = ({ sessions }: props) => {
   const currTime: Date = new Date(Date.now());
 
   return (
@@ -23,17 +23,21 @@ const ActiveUsersList = ({ users }: props) => {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
-              <tr key={user.nick}>
-                <td className={styles.userRow}>
-                  <a href={'google.com'}>{user.nick}</a>
-                </td>
-                <td className={styles.timeCell}>
-                  {formatTime(user.activeSince)}
-                  <time>{getHoursDiff(user.activeSince, currTime)}</time>
-                </td>
-              </tr>
-            ))}
+            {sessions.map(session => {
+              const startTime = new Date(session.startTime);
+
+              return (
+                <tr key={session.user.nick}>
+                  <td className={styles.userRow}>
+                    <a href={'google.com'}>{session.user.nick}</a>
+                  </td>
+                  <td className={styles.timeCell}>
+                    {formatTime(startTime)}
+                    <time>{getHoursDiff(startTime, currTime)}</time>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -48,9 +52,7 @@ function formatTime(time: Date): string {
 const oneHour = 1000 * 60 * 60;
 const oneMinute = 1000 * 60;
 function getHoursDiff(a: Date, b: Date): string {
-  console.log('Date a: ', a, ' | b: ', b);
   const diffTime = Math.abs(a.getTime() - b.getTime());
-  console.log('diff: ', diffTime);
   const diffHours = Math.round(diffTime / oneHour);
   if (diffHours >= 1) {
     return `(${diffHours} hours)`;
