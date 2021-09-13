@@ -32,6 +32,31 @@ const mockData: User[] = [
     activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
     groups: [],
   },
+  {
+    nick: 'Champis',
+    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
+    groups: ['nollkit'],
+  },
+  {
+    nick: 'Pang',
+    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
+    groups: ['sexit'],
+  },
+  {
+    nick: 'Snek',
+    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
+    groups: ['hookit'],
+  },
+  {
+    nick: 'SÄPO',
+    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
+    groups: ['drawit'],
+  },
+  {
+    nick: 'Bieber',
+    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
+    groups: ['snit'],
+  },
 ];
 
 const Home = () => {
