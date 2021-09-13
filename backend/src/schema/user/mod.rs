@@ -45,6 +45,16 @@ impl User {
     user.avatar_url
   }
 
+  async fn groups(&self, context: &Context<'_>) -> Vec<String> {
+    let user_service = context.data_unchecked::<UserService>();
+    let user = user_service.get_by_id(self.id, false).await.unwrap();
+    user
+      .groups
+      .into_iter()
+      .map(|group| group.super_group.name)
+      .collect()
+  }
+
   async fn hour_stats(&self, context: &Context<'_>) -> Vec<u32> {
     let hour_stats_service = context.data_unchecked::<HourStatsService>();
     hour_stats_service.get_for_user(self.id).await.unwrap()

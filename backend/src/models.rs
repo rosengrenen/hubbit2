@@ -85,4 +85,5 @@ pub struct GammaGroup {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GammaSuperGroup {
   pub id: Uuid,
+  pub name: String,
 }
