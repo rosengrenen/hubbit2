@@ -12,13 +12,13 @@
     "clean": "rimraf .next",
     "dev": "yarn generate-gql-types && next dev",
     "generate-gql-types": "graphql-codegen",
-    "lint:check": "eslint --ignore-path .gitignore --ext .ts,.tsx . && yarn prettier:check",
-    "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx --fix . && yarn prettier:fix",
-    "prettier:check": "prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
-    "prettier:fix": "prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "lint:check": "yarn generate-gql-types && eslint --ignore-path .gitignore --ext .ts,.tsx . && yarn prettier:check",
+    "lint:fix": "yarn generate-gql-types && eslint --ignore-path .gitignore --ext .ts,.tsx --fix . && yarn prettier:fix",
+    "prettier:check": "yarn generate-gql-types && prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "prettier:fix": "yarn generate-gql-types && prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
     "regenerate-gql-schema": "cd ../backend && cargo run --bin export_sdl > ../frontend/schema.gql",
     "start": "next start",
-    "test": "jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
+    "test": "yarn generate-gql-types && jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
   },
   "dependencies": {
     "graphql": "^15.5.3",
