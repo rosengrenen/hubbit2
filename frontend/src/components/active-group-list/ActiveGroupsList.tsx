@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { ActiveSessions } from '../../queries/getActiveSessions';
+import { CurrentSessionsQuery } from '../../__generated__/graphql';
 
 import styles from './ActiveGroupsList.module.scss';
 
 interface props {
-  sessions: ActiveSessions['currentSessions'];
+  sessions: CurrentSessionsQuery['currentSessions'];
 }
 
 const ActiveGroupsList = ({ sessions }: props) => {

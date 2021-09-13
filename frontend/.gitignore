@@ -2,3 +2,4 @@ node_modules
 .next
 .idea
 __generated__
+yarn-error.log

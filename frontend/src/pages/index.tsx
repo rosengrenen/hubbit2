@@ -1,34 +1,27 @@
 import React from 'react';
 
-import { useQuery } from 'urql';
-
+import { useCurrentSessionsQuery } from '../__generated__/graphql';
 import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
 import ActiveUsersList from '../components/active-users-list/ActiveUsersList';
-import { ActiveSessions, getCurrentSessions } from '../queries/getActiveSessions';
 
 import styles from './index.module.scss';
 
 const Home = () => {
-  const [session] = useQuery<ActiveSessions>({
-    query: getCurrentSessions,
-  });
+  const [{ data, fetching, error }] = useCurrentSessionsQuery();
 
-  if (session.fetching) {
+  if (fetching) {
     return <div>Loading...</div>;
   }
 
-  if (session.error) {
-    console.error('Error:', session.error);
-    return <div style={{ color: 'red' }}>ERROR</div>;
+  if (error) {
+    return <div>Error...</div>;
   }
-
-  console.log('DATA, ', session.data.currentSessions);
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.sessionsContainer}>
-        <ActiveUsersList sessions={session.data.currentSessions} />
-        <ActiveGroupsList sessions={session.data.currentSessions} />
+        <ActiveUsersList sessions={data.currentSessions} />
+        <ActiveGroupsList sessions={data.currentSessions} />
       </div>
     </div>
   );

@@ -8,13 +8,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "yarn generate-gql-types && next build",
     "clean": "rimraf .next",
-    "dev": "next dev -p $PORT",
-    "lint:check": "eslint --ext .ts,.tsx . && yarn prettier:check",
-    "lint:fix": "eslint --ext .ts,.tsx --fix . && yarn prettier:fix",
+    "dev": "yarn generate-gql-types && next dev",
+    "generate-gql-types": "graphql-codegen",
+    "lint:check": "eslint --ignore-path .gitignore --ext .ts,.tsx . && yarn prettier:check",
+    "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx --fix . && yarn prettier:fix",
     "prettier:check": "prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
     "prettier:fix": "prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "regenerate-gql-schema": "cd ../backend && cargo run --bin export_sdl > ../frontend/schema.gql",
     "start": "next start",
     "test": "jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
   },
@@ -27,6 +29,10 @@
     "urql": "^2.0.4"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^2.2.0",
+    "@graphql-codegen/typescript": "^2.2.2",
+    "@graphql-codegen/typescript-operations": "^2.1.4",
+    "@graphql-codegen/typescript-urql": "^3.2.0",
     "@types/jest": "^26.0.21",
     "@types/node": "^14.14.35",
     "@types/react": "^17.0.3",
