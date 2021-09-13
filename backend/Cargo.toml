@@ -15,13 +15,16 @@ async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
 env_logger = "0.8"
+futures = "0.3"
 lazy_static = "1.4"
 mobc = "0.5" # Actix 3 is not upgraded to tokio 1.x
 mobc-redis = "0.5" # Actix 3 is not upgraded to tokio 1.x
+once_cell = "1.8"
 rand = "0.8"
 reqwest = "0.10" # Actix 3 is not upgraded to tokio 1.x
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+slab = "0.4"
 sqlx = { version = "0.4", features = ["runtime-actix-rustls", "postgres", "macros", "migrate", "chrono", "uuid", "offline"] } # Actix 3 is not upgraded to tokio 1.x
-tokio = { version = "0.2", features = ["rt-core", "sync"] } # Actix 3 is not upgraded to tokio 1.x
+tokio = { version = "0.2", features = ["rt-core", "sync", "time"] } # Actix 3 is not upgraded to tokio 1.x
 uuid = { version = "0.8", features = ["serde"] }
