@@ -26,6 +26,7 @@ const ActiveGroupsList = ({ sessions }: props) => {
     <div className={styles.activeGroupsContainer}>
       {Array.from(groupsMap.keys()).map(group => (
         <div key={group} className={styles.groupBoxContainer}>
+          {/*TODO(vidarm): Rewrite without table */}
           <table key={group} className={'data-table card-shadow '}>
             <tbody>
               <tr className={'header-row'} id={group}>
