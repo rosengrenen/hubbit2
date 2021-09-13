@@ -3,6 +3,7 @@ name = "backend"
 version = "0.0.1"
 authors = ["Rasmus Rosengren <rasmus.rosengren@pm.me>"]
 edition = "2018"
+default-run = "server"
 
 [dependencies]
 actix-session = "0.4"
