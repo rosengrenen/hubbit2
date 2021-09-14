@@ -1,0 +1,16 @@
+.inlineList li {
+  display: inline-block;
+  padding-left: 1em;
+  font-weight: bold;
+
+  &.selected a {
+    font-weight: bold;
+    color: black;
+  }
+}
+
+.statsWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

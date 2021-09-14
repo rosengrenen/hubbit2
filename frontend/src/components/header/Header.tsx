@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import styles from './Header.module.scss';
 
-enum Tab {
-  ME,
-  IN_HUB,
-  ALL_STATS,
-  MY_STATS,
-}
+const MAIN_ENDPOINT = '/';
+const ME_ENDPOINT = '/me';
+const STATS_ENDPOINT = '/stats';
+const MY_STATS_ENDPOINT = '/my_stats';
 
 const Header = () => {
-  const activeTab: Tab = getCurrentTab();
+  const { pathname } = useRouter();
 
   return (
     <header className={styles.hContainer}>
@@ -21,32 +22,30 @@ const Header = () => {
       </h1>
       <nav>
         <ul className={styles.menu}>
-          <li className={activeTab === Tab.ME ? styles.active : ''}>
-            <a href="/">ME</a>
+          <li className={pathname === ME_ENDPOINT ? styles.active : ''}>
+            <Link href={ME_ENDPOINT}>
+              <a>ME</a>
+            </Link>
           </li>
-          <li className={activeTab === Tab.IN_HUB ? styles.active : ''}>
-            <a href="/">SMURFS IN THE HUBB</a>
+          <li className={pathname === MAIN_ENDPOINT ? styles.active : ''}>
+            <Link href={MAIN_ENDPOINT}>
+              <a>SMURFS IN THE HUBB</a>
+            </Link>
           </li>
-          <li className={activeTab === Tab.ALL_STATS ? styles.active : ''}>
-            <a href="/">STATS</a>
+          <li className={pathname === STATS_ENDPOINT ? styles.active : ''}>
+            <Link href={STATS_ENDPOINT}>
+              <a>STATS</a>
+            </Link>
           </li>
-          <li className={activeTab === Tab.MY_STATS ? styles.active : ''}>
-            <a href="/">MY STATS</a>
+          <li className={pathname === MY_STATS_ENDPOINT ? styles.active : ''}>
+            <Link href={MY_STATS_ENDPOINT}>
+              <a>MY STATS</a>
+            </Link>
           </li>
         </ul>
       </nav>
     </header>
   );
 };
-
-function getCurrentTab(): Tab {
-  const path = window.location.pathname;
-  switch (path) {
-    case '/':
-      return Tab.IN_HUB;
-    default:
-      return Tab.IN_HUB;
-  }
-}
 
 export default Header;
