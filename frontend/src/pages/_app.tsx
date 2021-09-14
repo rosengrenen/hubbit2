@@ -31,7 +31,9 @@ function HubbitApp({ Component, pageProps }) {
       <div className={'pageWrapper'}>
         <Header />
         <div className={'componentWrapper'}>
-          <Component {...pageProps} />
+          <div className={'wrapper'}>
+            <Component {...pageProps} />
+          </div>
         </div>
         <Footer />
       </div>

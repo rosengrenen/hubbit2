@@ -14,7 +14,7 @@ const ActiveUsersList = ({ sessions }: props) => {
   return (
     <div className={styles.activeSmurfsWrapper}>
       <div>
-        There are {1} smurfs in the Hubb right now!
+        There are {sessions.length} smurfs in the Hubb right now!
         <table className={'data-table card-shadow ' + styles.activeSmurfsTable}>
           <thead>
             <tr className={'header-row'}>

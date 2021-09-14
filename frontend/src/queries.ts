@@ -13,3 +13,14 @@ export const CURRENT_SESSIONS_QUERY = gql`
     }
   }
 `;
+
+export const ALL_TIME_SESSIONS_QUERY = gql`
+  query AllTimeSessions {
+    stats {
+      user {
+        nick
+      }
+      time
+    }
+  }
+`;

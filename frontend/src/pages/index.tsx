@@ -11,21 +11,19 @@ import styles from './index.module.scss';
 const Home = () => {
   const [{ data, fetching, error }] = useCurrentSessionsQuery();
 
-  if (session.fetching) {
+  if (fetching) {
     return <LoadingData />;
   }
 
-  if (session.error) {
-    console.error('Error:', session.error);
+  if (error) {
+    console.error('Error:', error);
     return <Error />;
   }
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.sessionsContainer}>
-        <ActiveUsersList sessions={data.currentSessions} />
-        <ActiveGroupsList sessions={data.currentSessions} />
-      </div>
+    <div className={styles.sessionsContainer}>
+      <ActiveUsersList sessions={data.currentSessions} />
+      <ActiveGroupsList sessions={data.currentSessions} />
     </div>
   );
 };
