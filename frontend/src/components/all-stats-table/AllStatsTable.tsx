@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { AllTimeSessionsQuery } from '../../__generated__/graphql';
+import { StatsQuery } from '../../__generated__/graphql';
 
 interface props {
-  stats: AllTimeSessionsQuery['stats'];
+  stats: StatsQuery['stats'];
 }
 
 const AllStatsTable = ({ stats }: props) => (

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { useAllTimeSessionsQuery } from '../../__generated__/graphql';
+import { Period, StatsInput, useStatsQuery } from '../../__generated__/graphql';
 import AllStatsTable from '../../components/all-stats-table/AllStatsTable';
 import Error from '../../components/error/Error';
 import LoadingData from '../../components/loading-data/LoadingData';
@@ -18,32 +18,67 @@ const WEEKLY = 'weekly';
 const DAILY = 'daily';
 
 const AllStats = () => {
-  const [{ data, fetching, error }] = useAllTimeSessionsQuery();
-
   const { pathname, query } = useRouter();
   const timeFrame = query['timeframe'];
 
   let activeFrame = STUDY_YEAR;
+  let statsInput: StatsInput = {};
+  const currentDate = new Date(Date.now());
   switch (timeFrame) {
     case ALL_TIME:
       activeFrame = ALL_TIME;
       break;
+    case STUDY_YEAR:
+      statsInput = {
+        studyYearStats: {
+          year: currentDate.getFullYear(),
+        },
+      };
+      activeFrame = STUDY_YEAR;
+      break;
     case STUDY_PERIOD:
+      statsInput = {
+        studyPeriodStats: {
+          year: currentDate.getFullYear(),
+          // TODO(Vidde): Update when getting the current period is supported.
+          period: Period.Lp1,
+        },
+      };
       activeFrame = STUDY_PERIOD;
       break;
     case MONTHLY:
+      statsInput = {
+        monthStats: {
+          year: currentDate.getFullYear(),
+          month: currentDate.getMonth(),
+        },
+      };
       activeFrame = MONTHLY;
       break;
     case WEEKLY:
+      // TODO(Vidde): Implement when supported by BE
       activeFrame = WEEKLY;
       break;
     case DAILY:
+      statsInput = {
+        dayStats: {
+          year: currentDate.getFullYear(),
+          month: currentDate.getMonth(),
+          day: currentDate.getDate(),
+        },
+      };
       activeFrame = DAILY;
       break;
     default:
       activeFrame = STUDY_YEAR;
       break;
   }
+
+  const [{ data, fetching, error }] = useStatsQuery({
+    variables: {
+      input: statsInput,
+    },
+  });
 
   if (fetching) {
     return <LoadingData />;
