@@ -13,13 +13,48 @@ h1 {
 
 a {
   text-decoration: none;
-  color: inherit;
+  color: #005C95;
+  font-weight: 700;
 }
 
 body {
   font-family: $font-stack;
   margin: 0;
   background-color: #F1F1F1;
+}
+
+header {
+  h1 {
+    text-align: center;
+
+    .title-link {
+      @media screen and (max-width: 580px) {
+        font-size: 30px;
+        font-weight: normal;
+      }
+    }
+    a {
+      color: #000;
+      &:hover {
+        color: $text-color;
+      }
+    }
+  }
+
+  nav {
+    text-align: center;
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin-bottom: 0;
+      li {
+        display: inline-block;
+        a:hover {
+          color: darken($text-color, 80);
+        }
+      }
+    }
+  }
 }
 
 .pageWrapper {
@@ -36,4 +71,34 @@ body {
 * {
   box-sizing: border-box;
   font-family: $font-stack;
+}
+
+.card {
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 4px 4px 10px 0px #AAAAAA;
+  padding: 10px;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 100px;
+}
+
+nav {
+  text-align: center;
+  ul {
+    list-style-type: none;
+    padding: 0;
+    li {
+      display: inline-block;
+      a:hover {
+        color: darken($text-color, 80);
+      }
+    }
+  }
 }
