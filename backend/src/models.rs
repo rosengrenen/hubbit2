@@ -1,3 +1,4 @@
+use async_graphql::Enum;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
@@ -62,9 +63,44 @@ pub struct StudyPeriod {
   pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Copy, Clone, Enum, Eq, PartialEq)]
+pub enum Period {
+  Summer,
+  LP1,
+  LP2,
+  LP3,
+  LP4,
+}
+
+impl From<i32> for Period {
+  fn from(value: i32) -> Self {
+    match value {
+      0 => Self::Summer,
+      1 => Self::LP1,
+      2 => Self::LP2,
+      3 => Self::LP3,
+      4 => Self::LP4,
+      _ => panic!("Period integer value must be between 0 and 4"),
+    }
+  }
+}
+
+impl From<Period> for i32 {
+  fn from(period: Period) -> Self {
+    match period {
+      Period::Summer => 0,
+      Period::LP1 => 1,
+      Period::LP2 => 2,
+      Period::LP3 => 3,
+      Period::LP4 => 4,
+    }
+  }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GammaUser {
   pub id: Uuid,
+  pub cid: String,
   pub nick: String,
   #[serde(rename = "firstName")]
   pub first_name: String,

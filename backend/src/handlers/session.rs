@@ -6,6 +6,7 @@ use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
 use sqlx::PgPool;
 
 use crate::{
+  config::Config,
   error::HubbitResult,
   repositories::{
     ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
@@ -16,6 +17,7 @@ async fn update_sessions(
   mut mac_addrs: web::Json<Vec<String>>,
   req: web::HttpRequest,
   pool: web::Data<PgPool>,
+  config: web::Data<Config>,
 ) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
   let api_key_repo = ApiKeyRepository::new(pool.clone());
@@ -45,13 +47,17 @@ async fn update_sessions(
     .collect::<Vec<_>>();
   user_ids.sort_unstable();
   user_ids.dedup();
-  user_session_repo.update_sessions(&user_ids).await?;
+  user_session_repo
+    .update_sessions(&user_ids, config.session_lifetime_s)
+    .await?;
 
   let devices = mac_addrs
     .into_iter()
     .map(|mac_addr| (mac_addr.user_id, mac_addr.address))
     .collect::<Vec<_>>();
-  session_repo.update_sessions(&devices).await?;
+  session_repo
+    .update_sessions(&devices, config.session_lifetime_s)
+    .await?;
 
   Ok(HttpResponse::Ok().finish())
 }

@@ -1,3 +1,4 @@
+pub mod me;
 pub mod session;
 pub mod stats;
 pub mod user;
@@ -15,6 +16,7 @@ use crate::{
 };
 
 use self::{
+  me::MeQuery,
   session::query::{ActiveSession, SessionQuery},
   stats::query::StatsQuery,
   user::User,
@@ -23,7 +25,7 @@ use self::{
 pub type HubbitSchema = Schema<QueryRoot, EmptyMutation, SubscriptionRoot>;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(SessionQuery, StatsQuery);
+pub struct QueryRoot(SessionQuery, StatsQuery, MeQuery);
 
 #[derive(Default)]
 pub struct SubscriptionRoot;
@@ -69,15 +71,16 @@ pub type HubbitSchemaResult<T> = Result<T, HubbitSchemaError>;
 #[derive(Clone, Copy, Debug)]
 pub enum HubbitSchemaError {
   NotLoggedIn,
+  NotAuthorized,
   InternalError,
 }
 
 impl ErrorExtensions for HubbitSchemaError {
   fn extend(&self) -> async_graphql::Error {
-    self.extend_with(|err, e| {
-      if let HubbitSchemaError::NotLoggedIn = err {
-        e.set("code", "NOT_LOGGED_IN")
-      }
+    self.extend_with(|err, e| match err {
+      HubbitSchemaError::NotLoggedIn => e.set("code", "NOT_LOGGED_IN"),
+      HubbitSchemaError::NotAuthorized => e.set("code", "NOT_AUTHORIZED"),
+      _ => (),
     })
   }
 }
@@ -86,6 +89,7 @@ impl Display for HubbitSchemaError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       HubbitSchemaError::NotLoggedIn => write!(f, "Not logged in"),
+      HubbitSchemaError::NotAuthorized => write!(f, "Not authorized"),
       HubbitSchemaError::InternalError => write!(f, "Internal unrecoverable error"),
     }
   }

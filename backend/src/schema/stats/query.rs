@@ -1,9 +1,10 @@
-use async_graphql::{guard::Guard, Context, Enum, InputObject, Object};
+use async_graphql::{guard::Guard, Context, InputObject, Object};
 use chrono::{DateTime, Local, TimeZone};
 use lazy_static::lazy_static;
 
 use crate::{
-  repositories::Period as DbPeriod,
+  models::Period,
+  repositories::StudyPeriodRepository,
   schema::{AuthGuard, HubbitSchemaError, HubbitSchemaResult},
   services::{stats::StatsService, user::UserService},
 };
@@ -42,27 +43,6 @@ struct StudyYearStatsInput {
   year: i32,
 }
 
-#[derive(Copy, Clone, Enum, Eq, PartialEq)]
-pub enum Period {
-  LP1,
-  LP2,
-  LP3,
-  LP4,
-  Summer,
-}
-
-impl From<Period> for DbPeriod {
-  fn from(gql_period: Period) -> Self {
-    match gql_period {
-      Period::LP1 => Self::LP1,
-      Period::LP2 => Self::LP2,
-      Period::LP3 => Self::LP3,
-      Period::LP4 => Self::LP4,
-      Period::Summer => Self::Summer,
-    }
-  }
-}
-
 #[derive(InputObject)]
 struct StudyPeriodStatsInput {
   year: i32,
@@ -85,6 +65,7 @@ impl StatsQuery {
     context: &Context<'_>,
     input: Option<StatsInput>,
   ) -> HubbitSchemaResult<Vec<Stat>> {
+    // TODO(rasmus): weekly stats
     let stats_service = context.data_unchecked::<StatsService>();
     let stats_result = if let Some(input) = input {
       if let Some(YearStatsInput { year }) = input.year_stats {
@@ -122,5 +103,15 @@ impl StatsQuery {
     let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
     stats.sort_by_key(|stat| -stat.score);
     Ok(stats)
+  }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn current_study_period(&self, context: &Context<'_>) -> HubbitSchemaResult<Period> {
+    let study_period_repo = context.data_unchecked::<StudyPeriodRepository>();
+    let current_study_period = study_period_repo
+      .get_current()
+      .await
+      .map_err(|_| HubbitSchemaError::InternalError)?;
+    Ok(current_study_period.period.into())
   }
 }

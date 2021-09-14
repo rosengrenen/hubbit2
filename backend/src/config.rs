@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, str::FromStr};
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -10,32 +10,38 @@ pub struct Config {
   pub gamma_api_key: String,
   pub gamma_client_id: String,
   pub gamma_client_secret: String,
+  pub session_lifetime_s: f64,
 }
 
 impl Config {
   pub fn from_env() -> Result<Self, ConfigError> {
     Ok(Self {
-      port: env::var("PORT").map_err(|_| ConfigError::UndefinedVar("PORT".to_string()))?,
-      db_url: env::var("DATABASE_URL")
-        .map_err(|_| ConfigError::UndefinedVar("DATABASE_URL".to_string()))?,
-      redis_url: env::var("REDIS_URL")
-        .map_err(|_| ConfigError::UndefinedVar("REDIS_URL".to_string()))?,
-      gamma_public_url: env::var("GAMMA_PUBLIC_URL")
-        .map_err(|_| ConfigError::UndefinedVar("GAMMA_PUBLIC_URL".to_string()))?,
-      gamma_internal_url: env::var("GAMMA_INTERNAL_URL")
-        .map_err(|_| ConfigError::UndefinedVar("GAMMA_INTERNAL_URL".to_string()))?,
-      gamma_api_key: env::var("GAMMA_API_KEY")
-        .map_err(|_| ConfigError::UndefinedVar("GAMMA_API_KEY".to_string()))?,
-      gamma_client_id: env::var("GAMMA_CLIENT_ID")
-        .map_err(|_| ConfigError::UndefinedVar("GAMMA_CLIENT_ID".to_string()))?,
-      gamma_client_secret: env::var("GAMMA_CLIENT_SECRET")
-        .map_err(|_| ConfigError::UndefinedVar("GAMMA_CLIENT_SECRET".to_string()))?,
+      port: try_read_var("PORT")?,
+      db_url: try_read_var("DATABASE_URL")?,
+      redis_url: try_read_var("REDIS_URL")?,
+      gamma_public_url: try_read_var("GAMMA_PUBLIC_URL")?,
+      gamma_internal_url: try_read_var("GAMMA_INTERNAL_URL")?,
+      gamma_api_key: try_read_var("GAMMA_API_KEY")?,
+      gamma_client_id: try_read_var("GAMMA_CLIENT_ID")?,
+      gamma_client_secret: try_read_var("GAMMA_CLIENT_SECRET")?,
+      session_lifetime_s: try_read_var("SESSION_LIFETIME_SECONDS")?,
     })
   }
+}
+
+fn try_read_var<T: FromStr>(name: &str) -> Result<T, ConfigError> {
+  let value = env::var(name).map_err(|_| ConfigError::UndefinedVar(name.to_string()))?;
+  Ok(
+    value
+      .parse::<T>()
+      .map_err(|_| ConfigError::InvalidVar(name.to_string()))?,
+  )
 }
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConfigError {
   #[error("Environment variable {0} not defined")]
   UndefinedVar(String),
+  #[error("Environment variable {0} is invalid")]
+  InvalidVar(String),
 }

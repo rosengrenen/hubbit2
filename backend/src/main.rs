@@ -26,7 +26,8 @@ use crate::{
   config::Config,
   error::HubbitResult,
   repositories::{
-    StudyPeriodRepository, StudyYearRepository, UserRepository, UserSessionRepository,
+    MacAddressRepository, StudyPeriodRepository, StudyYearRepository, UserRepository,
+    UserSessionRepository,
   },
   schema::{HubbitSchema, QueryRoot, SubscriptionRoot},
   services::{hour_stats::HourStatsService, stats::StatsService, user::UserService},
@@ -49,24 +50,27 @@ async fn main() -> HubbitResult<()> {
   let redis_pool = Pool::builder().build(redis_manager);
 
   // Create repos
-  let user_session_repo = UserSessionRepository::new(db_pool.clone());
-  let study_year_repo = StudyYearRepository::new(db_pool.clone());
+  let mac_addr_repo = MacAddressRepository::new(db_pool.clone());
   let study_period_repo = StudyPeriodRepository::new(db_pool.clone());
+  let study_year_repo = StudyYearRepository::new(db_pool.clone());
   let user_repo = UserRepository::new(config.clone());
+  let user_session_repo = UserSessionRepository::new(db_pool.clone());
 
   // Create services
   let stats_service = StatsService::new(
     user_session_repo.clone(),
     study_year_repo,
-    study_period_repo,
+    study_period_repo.clone(),
     redis_pool.clone(),
   );
   let hour_stats_service = HourStatsService::new(user_session_repo.clone());
   let user_service = UserService::new(user_repo, redis_pool.clone());
 
   let schema = HubbitSchema::build(QueryRoot::default(), EmptyMutation, SubscriptionRoot)
+    .data(mac_addr_repo)
     .data(stats_service)
     .data(hour_stats_service)
+    .data(study_period_repo)
     .data(user_service)
     .data(user_session_repo.clone())
     .finish();

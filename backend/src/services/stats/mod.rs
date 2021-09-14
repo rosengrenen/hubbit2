@@ -4,13 +4,14 @@ mod util;
 
 use std::collections::HashMap;
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, NaiveDate};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::{
   error::HubbitResult,
-  repositories::{Period, StudyPeriodRepository, StudyYearRepository, UserSessionRepository},
+  models::Period,
+  repositories::{StudyPeriodRepository, StudyYearRepository, UserSessionRepository},
   schema::stats::Stat,
   RedisPool,
 };
@@ -25,7 +26,7 @@ pub struct StatsService {
   study_year_repo: StudyYearRepository,
   study_period_repo: StudyPeriodRepository,
   redis_pool: RedisPool,
-  earliest_date: Mutex<Option<DateTime<Local>>>,
+  earliest_date: Mutex<Option<NaiveDate>>,
 }
 
 impl Clone for StatsService {
@@ -66,11 +67,13 @@ impl StatsService {
   }
 
   pub async fn get_study_period(&self, year: i32, period: Period) -> HubbitResult<Stats> {
-    let (start_date, end_date) = self
+    let study_period = self
       .study_period_repo
       .get_by_year_and_period(year, period)
       .await?;
-    self.get_range(start_date, end_date).await
+    self
+      .get_range(study_period.start_date, study_period.end_date)
+      .await
   }
 
   pub async fn get_study_year(&self, year: i32) -> HubbitResult<Stats> {
@@ -85,8 +88,7 @@ impl StatsService {
 
   pub async fn get_lifetime(&self) -> HubbitResult<Stats> {
     let now = Local::now();
-    let earliest_date = self.get_earliest_date().await?;
-    let start_date = earliest_date.date().naive_local();
+    let start_date = self.get_earliest_date().await?;
     let end_date = now.date().naive_local();
     self.get_range(start_date, end_date).await
   }

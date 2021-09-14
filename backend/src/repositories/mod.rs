@@ -9,7 +9,7 @@ mod user_session;
 pub use api_key::ApiKeyRepository;
 pub use mac_address::MacAddressRepository;
 pub use session::SessionRepository;
-pub use study_period::{Period, StudyPeriodRepository};
+pub use study_period::StudyPeriodRepository;
 pub use study_year::StudyYearRepository;
 pub use user::UserRepository;
 pub use user_session::UserSessionRepository;
