@@ -1,7 +1,7 @@
 {
   "db": "PostgreSQL",
-  "0934dccf42124ff9e2777c27312aa318312dbc859c1609cadba3f1a02234fb6b": {
-    "query": "\nSELECT *\nFROM mac_addresses\nWHERE user_id = $1\n        ",
+  "0f71815a79c870b57bb4e7f026414cd67a87a65e6a431ffc281e1c83bf7535e6": {
+    "query": "\nSELECT *\nFROM devices\nWHERE user_id = $1\n        ",
     "describe": {
       "columns": [
         {
@@ -21,7 +21,7 @@
         },
         {
           "ordinal": 3,
-          "name": "device_name",
+          "name": "name",
           "type_info": "Varchar"
         },
         {
@@ -38,6 +38,58 @@
       "parameters": {
         "Left": [
           "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "2872539a545a9ea255105d95e0eed039dd04f0e9fceb9b6e8e5849506cb23430": {
+    "query": "\nINSERT INTO devices (user_id, address, name)\nVALUES ($1, $2, $3)\nRETURNING *\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "address",
+          "type_info": "Bpchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Bpchar",
+          "Varchar"
         ]
       },
       "nullable": [
@@ -163,6 +215,56 @@
       ]
     }
   },
+  "48580297b14e9c9f11fb035c4f6149d6842fa81c6ffeaa22225fc6b83aec129d": {
+    "query": "\nSELECT *\nFROM devices\nWHERE id = $1\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "address",
+          "type_info": "Bpchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "50d9ed17dc4aaa1b70669482c4c403fd29c2826831dacf9ca35ebd3b0ba358a7": {
     "query": "\nUPDATE user_sessions\nSET end_time = NOW()\nWHERE user_id = ANY($1) AND end_time + ($2 * interval '1 second') > NOW()\nRETURNING *\n      ",
     "describe": {
@@ -262,56 +364,6 @@
       },
       "nullable": [
         false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
-  "703adb5055776fffcb65392b738ee4832ca263c8b8a82aaa6164387284c1fb5e": {
-    "query": "\nSELECT *\nFROM mac_addresses\nWHERE address = ANY($1)\n        ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "user_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "address",
-          "type_info": "Bpchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "device_name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "BpcharArray"
-        ]
-      },
-      "nullable": [
         false,
         false,
         false,
@@ -431,6 +483,56 @@
           "Uuid",
           "Timestamptz",
           "Timestamptz"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "b066a23f1d603ab1cc7be062c178fc813ba215e8f3bf5c5adaa59a6c084794c3": {
+    "query": "\nSELECT *\nFROM devices\nWHERE address = ANY($1)\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "address",
+          "type_info": "Bpchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "BpcharArray"
         ]
       },
       "nullable": [
@@ -574,6 +676,69 @@
       },
       "nullable": [
         false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "d69704bf5f83c4d0a940d5e7788b07fad3de2045b8436b6aa743478b8836d2ef": {
+    "query": "\nDELETE FROM devices\nWHERE id = $1\n      ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "d6f763bfaac12b1cf73088e4f0bd3b018fca9022c44d3811772330c3bdadf8dd": {
+    "query": "\nUPDATE devices\nSET name = $1\nWHERE id = $2\nRETURNING *\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "address",
+          "type_info": "Bpchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Uuid"
+        ]
+      },
+      "nullable": [
         false,
         false,
         false,
