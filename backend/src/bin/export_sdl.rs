@@ -1,8 +1,12 @@
-use async_graphql::EmptyMutation;
-use backend::schema::{HubbitSchema, QueryRoot, SubscriptionRoot};
+use backend::schema::{HubbitSchema, MutationRoot, QueryRoot, SubscriptionRoot};
 
 fn main() {
-  let schema = HubbitSchema::build(QueryRoot::default(), EmptyMutation, SubscriptionRoot).finish();
+  let schema = HubbitSchema::build(
+    QueryRoot::default(),
+    MutationRoot::default(),
+    SubscriptionRoot,
+  )
+  .finish();
 
   println!("{}", &schema.sdl());
 }

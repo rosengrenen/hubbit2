@@ -2,8 +2,6 @@ use std::collections::HashSet;
 
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
-use broker::SimpleBroker;
-use async_graphql::EmptyMutation;
 use dotenv::dotenv;
 use mobc::Pool;
 use mobc_redis::{redis::Client, RedisConnectionManager};
