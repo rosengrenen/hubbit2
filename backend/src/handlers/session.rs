@@ -9,7 +9,8 @@ use crate::{
   config::Config,
   error::HubbitResult,
   repositories::{
-    ApiKeyRepository, MacAddressRepository, SessionRepository, UserSessionRepository,
+    api_key::ApiKeyRepository, device::DeviceRepository, session::SessionRepository,
+    user_session::UserSessionRepository,
   },
 };
 
@@ -21,10 +22,13 @@ async fn update_sessions(
 ) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
   let api_key_repo = ApiKeyRepository::new(pool.clone());
-  let mac_addr_repo = MacAddressRepository::new(pool.clone());
+  let device_repo = DeviceRepository::new(pool.clone());
   let session_repo = SessionRepository::new(pool.clone());
   let user_session_repo = UserSessionRepository::new(pool);
 
+  for mac_addr in mac_addrs.iter_mut() {
+    *mac_addr = mac_addr.to_uppercase();
+  }
   mac_addrs.sort_unstable();
   mac_addrs.dedup();
 
@@ -39,11 +43,11 @@ async fn update_sessions(
   };
   api_key_repo.get_by_key(bearer.token()).await?;
 
-  let mac_addrs = mac_addr_repo.get_by_addrs(&mac_addrs).await?;
+  let devices = device_repo.get_by_addrs(&mac_addrs).await?;
 
-  let mut user_ids = mac_addrs
+  let mut user_ids = devices
     .iter()
-    .map(|mac_addr| mac_addr.user_id)
+    .map(|device| device.user_id)
     .collect::<Vec<_>>();
   user_ids.sort_unstable();
   user_ids.dedup();
@@ -51,9 +55,9 @@ async fn update_sessions(
     .update_sessions(&user_ids, config.session_lifetime_s)
     .await?;
 
-  let devices = mac_addrs
+  let devices = devices
     .into_iter()
-    .map(|mac_addr| (mac_addr.user_id, mac_addr.address))
+    .map(|device| (device.user_id, device.address))
     .collect::<Vec<_>>();
   session_repo
     .update_sessions(&devices, config.session_lifetime_s)

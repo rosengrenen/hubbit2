@@ -31,11 +31,9 @@ impl Config {
 
 fn try_read_var<T: FromStr>(name: &str) -> Result<T, ConfigError> {
   let value = env::var(name).map_err(|_| ConfigError::UndefinedVar(name.to_string()))?;
-  Ok(
-    value
-      .parse::<T>()
-      .map_err(|_| ConfigError::InvalidVar(name.to_string()))?,
-  )
+  value
+    .parse::<T>()
+    .map_err(|_| ConfigError::InvalidVar(name.to_string()))
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

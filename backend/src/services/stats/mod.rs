@@ -11,7 +11,10 @@ use uuid::Uuid;
 use crate::{
   error::HubbitResult,
   models::Period,
-  repositories::{StudyPeriodRepository, StudyYearRepository, UserSessionRepository},
+  repositories::{
+    study_period::StudyPeriodRepository, study_year::StudyYearRepository,
+    user_session::UserSessionRepository,
+  },
   schema::stats::Stat,
   RedisPool,
 };

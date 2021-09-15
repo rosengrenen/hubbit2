@@ -4,11 +4,11 @@ use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct MacAddress {
+pub struct Device {
   pub id: Uuid,
   pub user_id: Uuid,
   pub address: String,
-  pub device_name: String,
+  pub name: String,
   pub created_at: DateTime<Utc>,
   pub updated_at: DateTime<Utc>,
 }

@@ -5,12 +5,12 @@ use uuid::Uuid;
 
 use crate::{
   models::{GammaUser, UserSession},
-  repositories::{MacAddressRepository, UserSessionRepository},
+  repositories::{device::DeviceRepository, user_session::UserSessionRepository},
   services::{hour_stats::HourStatsService, user::UserService},
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
 
-use super::{HubbitSchemaError, HubbitSchemaResult};
+use super::{device::Device, HubbitSchemaError, HubbitSchemaResult};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
@@ -145,18 +145,15 @@ impl User {
       return Err(HubbitSchemaError::NotAuthorized);
     }
 
-    let mac_addr_repo = context.data_unchecked::<MacAddressRepository>();
-    let mac_addrs = mac_addr_repo
+    let device_repo = context.data_unchecked::<DeviceRepository>();
+    let devices = device_repo
       .get_for_user(self.id)
       .await
       .map_err(|_| HubbitSchemaError::InternalError)?;
     Ok(
-      mac_addrs
+      devices
         .into_iter()
-        .map(|addr| Device {
-          address: addr.address,
-          name: addr.device_name,
-        })
+        .map(|device| Device { id: device.id })
         .collect(),
     )
   }
@@ -166,10 +163,4 @@ impl User {
 pub struct Session {
   start_time: DateTime<Utc>,
   end_time: DateTime<Utc>,
-}
-
-#[derive(SimpleObject)]
-pub struct Device {
-  address: String,
-  name: String,
 }

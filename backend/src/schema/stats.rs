@@ -1,15 +1,23 @@
-use async_graphql::{guard::Guard, Context, InputObject, Object};
+use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
 use chrono::{DateTime, Local, TimeZone};
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 
 use crate::{
   models::Period,
-  repositories::StudyPeriodRepository,
+  repositories::study_period::StudyPeriodRepository,
   schema::{AuthGuard, HubbitSchemaError, HubbitSchemaResult},
   services::{stats::StatsService, user::UserService},
 };
 
-use super::Stat;
+use super::user::User;
+
+#[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
+pub struct Stat {
+  pub user: User,
+  pub score: i32,
+  pub time: i32,
+}
 
 #[derive(InputObject)]
 pub struct StatsInput {
@@ -77,7 +85,7 @@ impl StatsQuery {
       } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
         stats_service.get_study_year(year).await
       } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
-        stats_service.get_study_period(year, period.into()).await
+        stats_service.get_study_period(year, period).await
       } else {
         stats_service.get_lifetime().await
       }
