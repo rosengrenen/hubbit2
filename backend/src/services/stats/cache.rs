@@ -20,13 +20,13 @@ impl StatsService {
     mut end_date: NaiveDate,
   ) -> HubbitResult<Stats> {
     let now = Local::now();
-    if now.naive_local() > end_date.and_hms(0, 0, 0) {
+    if end_date.and_hms(0, 0, 0) > now.naive_local() {
       end_date = now.date().naive_local();
     }
 
     let earliest_date = self.get_earliest_date().await?;
-    if start_date.and_hms(0, 0, 0) < earliest_date.naive_local() {
-      start_date = earliest_date.date().naive_local();
+    if start_date < earliest_date {
+      start_date = earliest_date;
     }
 
     let mut days = Vec::new();
@@ -152,29 +152,55 @@ fn last_day_of_month(year: i32, month: u32) -> u32 {
 fn leading_days(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32, u32)> {
   let start_year = start_date.year();
   let start_month = start_date.month();
-  // If same year and month, only fetch range of days within that month, else
-  // fetch til end of month
   if start_year == end_date.year() && start_month == end_date.month() {
-    (start_date.day()..=end_date.day())
-      .map(|day| (start_year, start_month, day))
-      .collect()
-  } else {
+    // If range is within one month
+    if start_date.day() == 1 && end_date.day() == last_day_of_month(start_year, start_month) {
+      // If whole month, don't get individual days
+      Vec::new()
+    } else {
+      (start_date.day()..=end_date.day())
+        .map(|day| (start_year, start_month, day))
+        .collect()
+    }
+  } else if start_date.day() > 1 {
+    // If start date is not first day of month, fetch them separately
     let last_day_of_month = last_day_of_month(start_year, start_month);
     (start_date.day()..=last_day_of_month)
       .map(|day| (start_year, start_month, day))
       .collect()
+  } else {
+    // Ignore days, just fetch whole month
+    Vec::new()
   }
 }
 
 fn leading_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)> {
   let start_year = start_date.year();
   let start_month = start_date.month();
-  // If same year, only fetch range of months within that year, else
-  // fetch til end of year
   if start_year == end_date.year() {
-    (start_month + 1..end_date.month())
-      .map(|month| (start_year, month))
-      .collect()
+    if start_month == 1 && start_date.day() == 1 && end_date.month() == 12 && end_date.day() == 31 {
+      // If one whole year, don't fetch individual months
+      Vec::new()
+    } else {
+      let start_month = if start_date.day() == 1 {
+        start_month
+      } else {
+        start_month + 1
+      };
+
+      let end_month = if end_date.day() == last_day_of_month(end_date.year(), end_date.month()) {
+        end_date.month()
+      } else {
+        end_date.month() - 1
+      };
+
+      (start_month..=end_month)
+        .map(|month| (start_year, month))
+        .collect()
+    }
+  } else if start_month == 1 && start_date.day() > 1 {
+    // If whole leading year, don't fetch individual months
+    Vec::new()
   } else {
     (start_month..=12)
       .map(|month| (start_year, month))
@@ -183,7 +209,18 @@ fn leading_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)>
 }
 
 fn middle_years(start_date: NaiveDate, end_date: NaiveDate) -> Vec<i32> {
-  (start_date.year() + 1..end_date.year()).collect()
+  let start_year = if start_date.month() == 1 && start_date.day() == 1 {
+    start_date.year()
+  } else {
+    start_date.year() + 1
+  };
+
+  let end_year = if end_date.month() == 12 && end_date.day() == 31 {
+    end_date.year()
+  } else {
+    end_date.year() - 1
+  };
+  (start_year..=end_year).collect()
 }
 
 fn trailing_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)> {
@@ -200,11 +237,17 @@ fn trailing_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)
 fn trailing_days(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32, u32)> {
   let end_year = end_date.year();
   let end_month = end_date.month();
-  if end_year > start_date.year() || end_month > start_date.month() {
+  let last_day_of_month = last_day_of_month(end_year, end_month);
+  if end_year == start_date.year() && end_month == start_date.month()
+    || end_date.day() == last_day_of_month
+  {
+    // For ranges within one month there are no trailing days
+    // If the end of range is last day of month, fetch whole month instead of
+    // individual days
+    Vec::new()
+  } else {
     (1..=end_date.day())
       .map(|day| (end_year, end_month, day))
       .collect()
-  } else {
-    Vec::new()
   }
 }

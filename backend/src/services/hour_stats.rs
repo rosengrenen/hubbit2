@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::{
   error::HubbitResult,
   models::UserSession,
-  repositories::UserSessionRepository,
+  repositories::user_session::UserSessionRepository,
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
 

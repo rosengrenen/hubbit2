@@ -2,7 +2,7 @@ use async_graphql::{guard::Guard, Context, Object, SimpleObject};
 use chrono::{DateTime, Utc};
 
 use crate::{
-  repositories::UserSessionRepository,
+  repositories::user_session::UserSessionRepository,
   schema::{user::User, AuthGuard, HubbitSchemaError, HubbitSchemaResult},
 };
 

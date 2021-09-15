@@ -1,3 +1,5 @@
+mod device;
+pub mod me;
 pub mod session;
 pub mod stats;
 pub mod user;
@@ -5,25 +7,31 @@ pub mod user;
 use std::fmt::Display;
 
 use async_graphql::{
-  guard::Guard, Context, EmptyMutation, ErrorExtensions, MergedObject, Result, Schema, Subscription,
+  guard::Guard, Context, ErrorExtensions, MergedObject, Result, Schema, Subscription,
 };
 use async_trait::async_trait;
 use futures::StreamExt;
 
 use crate::{
-  broker::SimpleBroker, event::UserEvent, models::GammaUser, repositories::UserSessionRepository,
+  broker::SimpleBroker, event::UserEvent, models::GammaUser,
+  repositories::user_session::UserSessionRepository,
 };
 
 use self::{
+  device::DeviceMutation,
+  me::MeQuery,
   session::query::{ActiveSession, SessionQuery},
-  stats::query::StatsQuery,
+  stats::StatsQuery,
   user::User,
 };
 
-pub type HubbitSchema = Schema<QueryRoot, EmptyMutation, SubscriptionRoot>;
+pub type HubbitSchema = Schema<QueryRoot, MutationRoot, SubscriptionRoot>;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(SessionQuery, StatsQuery);
+pub struct QueryRoot(SessionQuery, StatsQuery, MeQuery);
+
+#[derive(MergedObject, Default)]
+pub struct MutationRoot(DeviceMutation);
 
 #[derive(Default)]
 pub struct SubscriptionRoot;
@@ -69,15 +77,20 @@ pub type HubbitSchemaResult<T> = Result<T, HubbitSchemaError>;
 #[derive(Clone, Copy, Debug)]
 pub enum HubbitSchemaError {
   NotLoggedIn,
+  NotAuthorized,
   InternalError,
+  InvalidInput,
+  NotFound,
 }
 
 impl ErrorExtensions for HubbitSchemaError {
   fn extend(&self) -> async_graphql::Error {
-    self.extend_with(|err, e| {
-      if let HubbitSchemaError::NotLoggedIn = err {
-        e.set("code", "NOT_LOGGED_IN")
-      }
+    self.extend_with(|err, e| match err {
+      HubbitSchemaError::NotLoggedIn => e.set("code", "NOT_LOGGED_IN"),
+      HubbitSchemaError::NotAuthorized => e.set("code", "NOT_AUTHORIZED"),
+      HubbitSchemaError::InvalidInput => e.set("code", "INVALID_INPUT"),
+      HubbitSchemaError::NotFound => e.set("code", "NOT_FOUND"),
+      _ => (),
     })
   }
 }
@@ -86,7 +99,10 @@ impl Display for HubbitSchemaError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       HubbitSchemaError::NotLoggedIn => write!(f, "Not logged in"),
+      HubbitSchemaError::NotAuthorized => write!(f, "Not authorized"),
       HubbitSchemaError::InternalError => write!(f, "Internal unrecoverable error"),
+      HubbitSchemaError::InvalidInput => write!(f, "Invalid input"),
+      HubbitSchemaError::NotFound => write!(f, "Not found"),
     }
   }
 }

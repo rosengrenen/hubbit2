@@ -13,7 +13,6 @@ use std::collections::HashSet;
 
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
-use async_graphql::EmptyMutation;
 use broker::SimpleBroker;
 use dotenv::dotenv;
 use event::UserEvent;
@@ -26,9 +25,10 @@ use crate::{
   config::Config,
   error::HubbitResult,
   repositories::{
-    StudyPeriodRepository, StudyYearRepository, UserRepository, UserSessionRepository,
+    device::DeviceRepository, study_period::StudyPeriodRepository, study_year::StudyYearRepository,
+    user::UserRepository, user_session::UserSessionRepository,
   },
-  schema::{HubbitSchema, QueryRoot, SubscriptionRoot},
+  schema::{HubbitSchema, MutationRoot, QueryRoot, SubscriptionRoot},
   services::{hour_stats::HourStatsService, stats::StatsService, user::UserService},
 };
 
@@ -49,27 +49,34 @@ async fn main() -> HubbitResult<()> {
   let redis_pool = Pool::builder().build(redis_manager);
 
   // Create repos
-  let user_session_repo = UserSessionRepository::new(db_pool.clone());
-  let study_year_repo = StudyYearRepository::new(db_pool.clone());
+  let device_repo = DeviceRepository::new(db_pool.clone());
   let study_period_repo = StudyPeriodRepository::new(db_pool.clone());
+  let study_year_repo = StudyYearRepository::new(db_pool.clone());
   let user_repo = UserRepository::new(config.clone());
+  let user_session_repo = UserSessionRepository::new(db_pool.clone());
 
   // Create services
   let stats_service = StatsService::new(
     user_session_repo.clone(),
     study_year_repo,
-    study_period_repo,
+    study_period_repo.clone(),
     redis_pool.clone(),
   );
   let hour_stats_service = HourStatsService::new(user_session_repo.clone());
   let user_service = UserService::new(user_repo, redis_pool.clone());
 
-  let schema = HubbitSchema::build(QueryRoot::default(), EmptyMutation, SubscriptionRoot)
-    .data(stats_service)
-    .data(hour_stats_service)
-    .data(user_service)
-    .data(user_session_repo.clone())
-    .finish();
+  let schema = HubbitSchema::build(
+    QueryRoot::default(),
+    MutationRoot::default(),
+    SubscriptionRoot,
+  )
+  .data(device_repo)
+  .data(stats_service)
+  .data(hour_stats_service)
+  .data(study_period_repo)
+  .data(user_service)
+  .data(user_session_repo.clone())
+  .finish();
 
   tokio::spawn(async move { track_sessions(user_session_repo).await });
 

@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-  models::UserSession,
-  repositories::UserSessionRepository,
+  models::{GammaUser, UserSession},
+  repositories::{device::DeviceRepository, user_session::UserSessionRepository},
   services::{hour_stats::HourStatsService, user::UserService},
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
 
-use super::{HubbitSchemaError, HubbitSchemaResult};
+use super::{device::Device, HubbitSchemaError, HubbitSchemaResult};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
@@ -21,6 +21,15 @@ pub struct User {
 impl User {
   async fn id(&self) -> Uuid {
     self.id
+  }
+
+  async fn cid(&self, context: &Context<'_>) -> HubbitSchemaResult<String> {
+    let user_service = context.data_unchecked::<UserService>();
+    let user = user_service
+      .get_by_id(self.id, false)
+      .await
+      .map_err(|_| HubbitSchemaError::InternalError)?;
+    Ok(user.cid)
   }
 
   async fn nick(&self, context: &Context<'_>) -> HubbitSchemaResult<String> {
@@ -126,6 +135,27 @@ impl User {
       start_time: session.start_time,
       end_time: session.end_time,
     }))
+  }
+
+  pub async fn devices(&self, context: &Context<'_>) -> HubbitSchemaResult<Vec<Device>> {
+    let auth_user = context
+      .data::<GammaUser>()
+      .map_err(|_| HubbitSchemaError::NotLoggedIn)?;
+    if self.id != auth_user.id {
+      return Err(HubbitSchemaError::NotAuthorized);
+    }
+
+    let device_repo = context.data_unchecked::<DeviceRepository>();
+    let devices = device_repo
+      .get_for_user(self.id)
+      .await
+      .map_err(|_| HubbitSchemaError::InternalError)?;
+    Ok(
+      devices
+        .into_iter()
+        .map(|device| Device { id: device.id })
+        .collect(),
+    )
   }
 }
 

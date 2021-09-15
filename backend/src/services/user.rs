@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
   error::HubbitResult,
   models::GammaUser,
-  repositories::UserRepository,
+  repositories::user::UserRepository,
   services::util::{redis_get, redis_mget, redis_set},
   RedisPool,
 };

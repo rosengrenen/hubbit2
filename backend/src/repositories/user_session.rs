@@ -69,7 +69,7 @@ ORDER BY start_time DESC
         "
 SELECT *
 FROM user_sessions
-WHERE end_time > NOW()
+WHERE end_time + (10 * interval '1 minute') > NOW()
 ORDER BY start_time DESC
         ",
       )
@@ -78,16 +78,21 @@ ORDER BY start_time DESC
     )
   }
 
-  pub async fn update_sessions(&self, user_ids: &[Uuid]) -> HubbitResult<()> {
+  pub async fn update_sessions(
+    &self,
+    user_ids: &[Uuid],
+    session_lifetime: f64,
+  ) -> HubbitResult<()> {
     let active_sessions: Vec<UserSession> = sqlx::query_as!(
       UserSession,
       "
 UPDATE user_sessions
-SET end_time = NOW() + (5 * interval '1 minute')
-WHERE user_id = ANY($1) AND end_time > NOW()
+SET end_time = NOW()
+WHERE user_id = ANY($1) AND end_time + ($2 * interval '1 second') > NOW()
 RETURNING *
       ",
-      user_ids
+      user_ids,
+      session_lifetime
     )
     .fetch_all(&self.pool)
     .await?;
@@ -105,7 +110,7 @@ RETURNING *
     sqlx::query!(
       "
 INSERT INTO user_sessions (user_id, start_time, end_time)
-SELECT user_id, NOW(), NOW() + (5 * interval '1 minute')
+SELECT user_id, NOW(), NOW()
 FROM UNNEST($1::uuid[]) as user_id
       ",
       &inactive_user_ids
