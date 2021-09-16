@@ -32,7 +32,7 @@ const ActiveGroupsList = ({ sessions }: props) => {
               <tr className={'header-row'} id={group}>
                 <th>{group}</th>
               </tr>
-              {groupsMap.get(group).map(user => (
+              {groupsMap.get(group)?.map(user => (
                 <tr key={user}>
                   <td className={styles.userRow}>
                     <a href={'google.com'}>{user}</a>

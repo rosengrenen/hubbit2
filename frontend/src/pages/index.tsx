@@ -1,23 +1,32 @@
 import React from 'react';
 
-import { useCurrentSessionsQuery } from '../__generated__/graphql';
+import { gql } from '@urql/core';
+import { NextPage } from 'next';
+
+import { CurrentSessionsQuery } from '../__generated__/graphql';
 import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
 import ActiveUsersList from '../components/active-users-list/ActiveUsersList';
-import Error from '../components/error/Error';
-import LoadingData from '../components/loading-data/LoadingData';
+import { defaultGetServerSideProps, PageProps } from '../util';
 
 import styles from './index.module.scss';
 
-const Home = () => {
-  const [{ data, fetching, error }] = useCurrentSessionsQuery();
-
-  if (fetching) {
-    return <LoadingData />;
+export const CURRENT_SESSIONS_QUERY = gql`
+  query CurrentSessions {
+    currentSessions {
+      user {
+        id
+        nick
+        avatarUrl
+        groups
+      }
+      startTime
+    }
   }
+`;
 
-  if (error) {
-    console.error('Error:', error);
-    return <Error />;
+const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
+  if (!data) {
+    return null;
   }
 
   return (
@@ -27,5 +36,7 @@ const Home = () => {
     </div>
   );
 };
+
+export const getServerSideProps = defaultGetServerSideProps<CurrentSessionsQuery>(CURRENT_SESSIONS_QUERY);
 
 export default Home;

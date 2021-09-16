@@ -1,14 +1,26 @@
 import React from 'react';
 
+import { gql } from '@urql/core';
+import { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { Period, StatsInput, useStatsQuery } from '../../__generated__/graphql';
+import { Period, StatsInput, StatsQuery } from '../../__generated__/graphql';
 import AllStatsTable from '../../components/all-stats-table/AllStatsTable';
-import Error from '../../components/error/Error';
-import LoadingData from '../../components/loading-data/LoadingData';
+import { defaultGetServerSideProps, PageProps } from '../../util';
 
 import styles from './index.module.scss';
+
+export const STATS_QUERY = gql`
+  query Stats($input: StatsInput) {
+    stats(input: $input) {
+      user {
+        nick
+      }
+      time
+    }
+  }
+`;
 
 const ALL_TIME = 'all_time';
 const STUDY_YEAR = 'study_year';
@@ -17,7 +29,7 @@ const MONTHLY = 'monthly';
 const WEEKLY = 'weekly';
 const DAILY = 'daily';
 
-const AllStats = () => {
+const AllStats: NextPage<PageProps<StatsQuery>> = ({ data }) => {
   const { pathname, query } = useRouter();
   const timeFrame = query['timeframe'];
 
@@ -74,19 +86,8 @@ const AllStats = () => {
       break;
   }
 
-  const [{ data, fetching, error }] = useStatsQuery({
-    variables: {
-      input: statsInput,
-    },
-  });
-
-  if (fetching) {
-    return <LoadingData />;
-  }
-
-  if (error) {
-    console.error('Error:', error);
-    return <Error />;
+  if (!data) {
+    return null;
   }
 
   return (
@@ -136,3 +137,5 @@ function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string
 }
 
 export default AllStats;
+
+export const getServerSideProps = defaultGetServerSideProps<StatsQuery>(STATS_QUERY);
