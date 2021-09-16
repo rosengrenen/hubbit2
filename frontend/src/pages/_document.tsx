@@ -3,11 +3,6 @@ import React from 'react';
 import Document, { Head, Html, Main, NextScript } from 'next/document';
 
 class HubbitDocument extends Document {
-  static async getInitialProps(ctx) {
-    const initialProps = await Document.getInitialProps(ctx);
-    return { ...initialProps };
-  }
-
   render() {
     return (
       <Html>
@@ -15,7 +10,7 @@ class HubbitDocument extends Document {
           <link
             rel="stylesheet"
             media="all"
-            href="//fonts.googleapis.com/css?family=Roboto:400,500,300,700"
+            href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,700"
             data-turbolinks-track="true"
           />
         </Head>
