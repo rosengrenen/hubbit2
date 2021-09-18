@@ -10,7 +10,7 @@ import { defaultGetServerSideProps, PageProps } from '../util';
 
 import styles from './index.module.scss';
 
-export const CURRENT_SESSIONS_QUERY = gql`
+const CURRENT_SESSIONS_QUERY = gql`
   query CurrentSessions {
     currentSessions {
       user {
