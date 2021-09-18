@@ -21,8 +21,12 @@
     "test": "yarn generate-gql-types && jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.15",
     "graphql": "^15.5.3",
     "next": "^11.1.2",
+    "npm": "^7.24.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "sass": "^1.39.0",

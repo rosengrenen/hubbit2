@@ -26,8 +26,10 @@
   }
 }
 
-.data-table tbody tr:hover {
-  background-color: #00b3e6;
+.data-table-row {
+  &:hover {
+    background-color: #00b3e6;
+  }
 }
 
 .data-table td, .data-table th {

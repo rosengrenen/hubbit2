@@ -10,7 +10,7 @@ class HubbitDocument extends Document {
           <link
             rel="stylesheet"
             media="all"
-            href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,700"
+            href="https://fonts.googleapis.com/css?family=Roboto:200,400,500,300,700"
             data-turbolinks-track="true"
           />
         </Head>
