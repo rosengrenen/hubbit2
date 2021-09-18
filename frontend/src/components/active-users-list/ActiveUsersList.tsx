@@ -27,7 +27,7 @@ const ActiveUsersList = ({ sessions }: props) => {
               const startTime = new Date(session.startTime);
 
               return (
-                <tr key={session.user.nick}>
+                <tr key={session.user.nick} className={'data-table-row'}>
                   <td className={styles.userRow}>
                     <a href={'google.com'}>{session.user.nick}</a>
                   </td>

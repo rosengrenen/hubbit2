@@ -2,6 +2,10 @@ type ActiveSession {
 	user: User!
 	startTime: DateTime!
 }
+input CreateDeviceInput {
+	address: String!
+	name: String!
+}
 """
 Implement the DateTime<Utc> scalar
 
@@ -13,20 +17,32 @@ input DayStatsInput {
 	month: Int!
 	day: Int!
 }
+type Device {
+	id: UUID!
+	address: String!
+	name: String!
+}
 input MonthStatsInput {
 	year: Int!
 	month: Int!
 }
+type MutationRoot {
+	createDevice(data: CreateDeviceInput!): Device!
+	updateDevice(id: UUID!, data: UpdateDeviceInput!): Device!
+	deleteDevice(id: UUID!): Boolean!
+}
 enum Period {
+	SUMMER
 	LP1
 	LP2
 	LP3
 	LP4
-	SUMMER
 }
 type QueryRoot {
 	currentSessions: [ActiveSession!]!
 	stats(input: StatsInput): [Stat!]!
+	currentStudyPeriod: Period!
+	me: User!
 }
 type Session {
 	startTime: DateTime!
@@ -56,8 +72,12 @@ type SubscriptionRoot {
 	userLeave: User!
 }
 scalar UUID
+input UpdateDeviceInput {
+	name: String!
+}
 type User {
 	id: UUID!
+	cid: String!
 	nick: String!
 	firstName: String!
 	lastName: String!
@@ -66,12 +86,14 @@ type User {
 	hourStats: [Int!]!
 	recentSessions: [Session!]!
 	longestSession: Session
+	devices: [Device!]!
 }
 input YearStatsInput {
 	year: Int!
 }
 schema {
 	query: QueryRoot
+	mutation: MutationRoot
 	subscription: SubscriptionRoot
 }
 

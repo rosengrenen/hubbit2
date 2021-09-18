@@ -19,7 +19,7 @@ const AllStatsTable = ({ stats }: props) => (
     <tbody>
       {stats.map((stat, index) => {
         return (
-          <tr key={stat.user.nick}>
+          <tr key={stat.user.nick} className={'data-table-row'}>
             <td>🐧</td>
             <td>{index + 1}</td>
             <td>
