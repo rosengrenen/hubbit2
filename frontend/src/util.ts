@@ -1,6 +1,6 @@
 import { CombinedError } from '@urql/core';
 import { DocumentNode } from 'graphql';
-import { GetServerSideProps, Redirect } from 'next';
+import { GetServerSideProps, GetServerSidePropsContext, Redirect } from 'next';
 
 import { serverSideClient } from './client';
 
@@ -51,15 +51,17 @@ export interface PageProps<T> {
   data?: T;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const defaultGetServerSideProps = <Result, Variables extends object = {}>(
+export const defaultGetServerSidePropsWithCallbackInput = <Result>(
   query: DocumentNode,
-  variables?: Variables,
+  inputCallback: (context: GetServerSidePropsContext) => any,
 ) => {
   const getServerSideProps: GetServerSideProps<PageProps<Result>> = async context => {
     const headers = rawHeadersToDict(context.req.rawHeaders);
     const client = serverSideClient(headers);
-    const { data, error } = await client.query<Result, Variables>(query, variables).toPromise();
+    const variables = inputCallback(context);
+    console.log("VARS:: '", variables, "'");
+
+    const { data, error } = await client.query<Result>(query, variables).toPromise();
 
     let redirect: Redirect | undefined = undefined;
     if (error) {
@@ -81,4 +83,12 @@ export const defaultGetServerSideProps = <Result, Variables extends object = {}>
   };
 
   return getServerSideProps;
+};
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const defaultGetServerSideProps = <Result, Variables extends object = {}>(
+  query: DocumentNode,
+  variables?: Variables,
+) => {
+  return defaultGetServerSidePropsWithCallbackInput(query, context => (variables ? variables : {}));
 };

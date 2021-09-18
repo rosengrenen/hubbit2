@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { gql } from '@urql/core';
-import { NextPage } from 'next';
+import { GetServerSidePropsContext, NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { Period, StatsInput, StatsQuery } from '../../__generated__/graphql';
 import AllStatsTable from '../../components/all-stats-table/AllStatsTable';
-import { defaultGetServerSideProps, PageProps } from '../../util';
+import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../util';
 
 import styles from './index.module.scss';
 
@@ -33,52 +33,24 @@ const AllStats: NextPage<PageProps<StatsQuery>> = ({ data }) => {
   const { pathname, query } = useRouter();
   const timeFrame = query['timeframe'];
 
-  let activeFrame = STUDY_YEAR;
-  let statsInput: StatsInput = {};
-  const currentDate = new Date(Date.now());
+  let activeFrame: string;
   switch (timeFrame) {
     case ALL_TIME:
       activeFrame = ALL_TIME;
       break;
     case STUDY_YEAR:
-      statsInput = {
-        studyYearStats: {
-          year: currentDate.getFullYear(),
-        },
-      };
       activeFrame = STUDY_YEAR;
       break;
     case STUDY_PERIOD:
-      statsInput = {
-        studyPeriodStats: {
-          year: currentDate.getFullYear(),
-          // TODO(Vidde): Update when getting the current period is supported.
-          period: Period.Lp1,
-        },
-      };
       activeFrame = STUDY_PERIOD;
       break;
     case MONTHLY:
-      statsInput = {
-        monthStats: {
-          year: currentDate.getFullYear(),
-          month: currentDate.getMonth(),
-        },
-      };
       activeFrame = MONTHLY;
       break;
     case WEEKLY:
-      // TODO(Vidde): Implement when supported by BE
       activeFrame = WEEKLY;
       break;
     case DAILY:
-      statsInput = {
-        dayStats: {
-          year: currentDate.getFullYear(),
-          month: currentDate.getMonth(),
-          day: currentDate.getDate(),
-        },
-      };
       activeFrame = DAILY;
       break;
     default:
@@ -129,6 +101,56 @@ const AllStats: NextPage<PageProps<StatsQuery>> = ({ data }) => {
   );
 };
 
+function getInputProps(context: GetServerSidePropsContext) {
+  const timeFrame = context.query['timeframe'];
+
+  let statsInput: StatsInput = {};
+  const currentDate = new Date(Date.now());
+  switch (timeFrame) {
+    case ALL_TIME:
+      statsInput = {};
+      break;
+    case STUDY_PERIOD:
+      statsInput = {
+        studyPeriodStats: {
+          year: currentDate.getFullYear(),
+          // TODO(Vidde): Update when getting the current period is supported.
+          period: Period.Lp1,
+        },
+      };
+      break;
+    case MONTHLY:
+      statsInput = {
+        monthStats: {
+          year: currentDate.getFullYear(),
+          month: currentDate.getMonth(),
+        },
+      };
+      break;
+    case WEEKLY:
+      // TODO(Vidde): Implement when supported by BE
+      break;
+    case DAILY:
+      statsInput = {
+        dayStats: {
+          year: currentDate.getFullYear(),
+          month: currentDate.getMonth(),
+          day: currentDate.getDate(),
+        },
+      };
+      break;
+    case STUDY_YEAR:
+    default:
+      statsInput = {
+        studyYearStats: {
+          year: currentDate.getFullYear(),
+        },
+      };
+      break;
+  }
+  return { input: statsInput };
+}
+
 function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string {
   if (typeof timeFrame === 'string') {
     return `${pathName}?timeframe=${timeFrame}`;
@@ -138,4 +160,4 @@ function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string
 
 export default AllStats;
 
-export const getServerSideProps = defaultGetServerSideProps<StatsQuery>(STATS_QUERY);
+export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsQuery>(STATS_QUERY, getInputProps);
