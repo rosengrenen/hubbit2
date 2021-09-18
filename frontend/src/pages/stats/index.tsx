@@ -17,7 +17,7 @@ export const STATS_QUERY = gql`
       user {
         nick
       }
-      time
+      durationMinutes
     }
   }
 `;

@@ -16,7 +16,7 @@
     "lint:fix": "yarn generate-gql-types && eslint --ignore-path .gitignore --ext .ts,.tsx --fix . && yarn prettier:fix",
     "prettier:check": "yarn generate-gql-types && prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
     "prettier:fix": "yarn generate-gql-types && prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
-    "regenerate-gql-schema": "cd ../backend && cargo run --bin export_sdl > ../frontend/schema.gql",
+    "generate-gql-schema": "cd ../backend && cargo run --bin export_sdl > ../frontend/schema.gql",
     "start": "next start",
     "test": "yarn generate-gql-types && jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
   },

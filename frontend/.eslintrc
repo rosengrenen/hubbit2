@@ -28,7 +28,7 @@
     "import/first": "error",
     "import/newline-after-import": "error",
     "import/no-duplicates": "error",
-    "no-console": "error",
+    "no-console": "warn",
     "simple-import-sort/imports": [
       "error",
       {

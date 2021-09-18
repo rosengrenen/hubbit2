@@ -25,7 +25,7 @@ const AllStatsTable = ({ stats }: props) => (
             <td>
               <a>{stat.user.nick}</a>
             </td>
-            <td>{convertMinutesToString(stat.time)}</td>
+            <td>{convertMinutesToString(stat.durationMinutes)}</td>
           </tr>
         );
       })}

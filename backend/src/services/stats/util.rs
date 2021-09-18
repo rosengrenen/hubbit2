@@ -2,12 +2,9 @@ use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::{
-  models::UserSession,
-  schema::{stats::Stat, user::User},
-};
+use crate::models::UserSession;
 
-use super::DateTimeRange;
+use super::{DateTimeRange, Stat};
 
 pub fn map_sessions(sessions: Vec<UserSession>) -> HashMap<Uuid, Vec<DateTimeRange>> {
   let mut sessions_map = HashMap::new();
@@ -32,27 +29,27 @@ pub fn calculate_stats(
   user_sessions
     .iter()
     .map(|(&user_id, sessions)| {
-      let minutes = sessions.iter().fold(0, |prev, &(start_time, end_time)| {
-        // Don't count session time outside of the range
-        let session_minutes = if end_time > range_end_time {
-          (range_end_time - start_time).num_seconds() as i32
-        } else if start_time < range_start_time {
-          (end_time - range_start_time).num_seconds() as i32
-        } else {
-          (end_time - start_time).num_seconds() as i32
-        };
+      let session_duration =
+        sessions
+          .iter()
+          .fold(Duration::zero(), |prev, &(start_time, end_time)| {
+            // Don't count session time outside of the range
+            let session_minutes = if end_time > range_end_time {
+              range_end_time - start_time
+            } else if start_time < range_start_time {
+              end_time - range_start_time
+            } else {
+              end_time - start_time
+            };
 
-        prev + session_minutes
-      });
-
-      let minutes = minutes / 60;
+            prev + session_minutes
+          });
 
       (
         user_id,
         Stat {
-          user: User { id: user_id },
-          score: minutes,
-          time: minutes,
+          user_id,
+          duration_ms: session_duration.num_milliseconds(),
         },
       )
     })
@@ -64,8 +61,7 @@ pub fn join_stats(stats: &mut HashMap<Uuid, Stat>, other_stats: &HashMap<Uuid, S
     stats
       .entry(*user_id)
       .and_modify(|s| {
-        s.score += stat.score;
-        s.time += stat.time;
+        s.duration_ms += stat.duration_ms;
       })
       .or_insert_with(|| stat.clone());
   }
