@@ -1,22 +1,30 @@
 import React from 'react';
 
-import { useMeQuery } from '../../__generated__/graphql';
-import Error from '../../components/error/Error';
-import LoadingData from '../../components/loading-data/LoadingData';
+import { gql } from '@urql/core';
+import { NextPage } from 'next';
+
+import { MeQuery } from '../../__generated__/graphql';
 import MacAddressesList from '../../components/mac-addresses-list/MacAddressesList';
+import { defaultGetServerSideProps, PageProps } from '../../util';
 
 import styles from './index.module.scss';
 
-const Index = () => {
-  const [{ data, fetching, error }] = useMeQuery();
-
-  if (fetching) {
-    return <LoadingData />;
+const ME_QUERY = gql`
+  query Me {
+    me {
+      cid
+      nick
+      devices {
+        address
+        name
+      }
+    }
   }
+`;
 
-  if (error) {
-    console.error('Error:', error);
-    return <Error />;
+const Index: NextPage<PageProps<MeQuery>> = ({ data }) => {
+  if (!data) {
+    return null;
   }
 
   return (
@@ -28,3 +36,5 @@ const Index = () => {
 };
 
 export default Index;
+
+export const getServerSideProps = defaultGetServerSideProps<MeQuery>(ME_QUERY);
