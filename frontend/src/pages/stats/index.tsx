@@ -15,6 +15,7 @@ export const STATS_QUERY = gql`
   query Stats($input: StatsInput) {
     stats(input: $input) {
       user {
+        cid
         nick
       }
       durationMinutes
