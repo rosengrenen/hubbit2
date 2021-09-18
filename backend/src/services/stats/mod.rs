@@ -5,6 +5,7 @@ mod util;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Local, NaiveDate};
+use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -15,13 +16,18 @@ use crate::{
     study_period::StudyPeriodRepository, study_year::StudyYearRepository,
     user_session::UserSessionRepository,
   },
-  schema::stats::Stat,
   RedisPool,
 };
 
 use self::util::{day_date_bounds, month_date_bounds, year_date_bounds};
 
 pub type DateTimeRange = (DateTime<Local>, DateTime<Local>);
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Stat {
+  pub user_id: Uuid,
+  pub duration_ms: i64,
+}
 
 pub type Stats = HashMap<Uuid, Stat>;
 pub struct StatsService {

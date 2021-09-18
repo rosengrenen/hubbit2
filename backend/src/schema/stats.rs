@@ -15,8 +15,7 @@ use super::user::User;
 #[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
 pub struct Stat {
   pub user: User,
-  pub score: i32,
-  pub time: i32,
+  pub duration_minutes: i64,
 }
 
 #[derive(InputObject)]
@@ -109,8 +108,16 @@ impl StatsQuery {
     }
 
     let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
-    stats.sort_by_key(|stat| -stat.score);
-    Ok(stats)
+    stats.sort_by_key(|stat| -stat.duration_ms);
+    Ok(
+      stats
+        .iter()
+        .map(|stat| Stat {
+          user: User { id: stat.user_id },
+          duration_minutes: stat.duration_ms / 1000 / 60,
+        })
+        .collect(),
+    )
   }
 
   #[graphql(guard(AuthGuard()))]
