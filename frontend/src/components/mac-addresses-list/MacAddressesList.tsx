@@ -93,6 +93,10 @@ const MacAddressesList = ({ initialDevices }: props) => {
           ))}
         </tbody>
       </table>
+      <div className={styles.helpText}>
+        Don't know how to find your <a href={'https://en.wikipedia.org/wiki/MAC_address'}>MAC Address</a>? Take a look
+        at <a href={'https://www.wikihow.com/Find-the-MAC-Address-of-Your-Computer'}>this guide</a>!
+      </div>
       <button
         className={styles.saveButton}
         onClick={() => {
