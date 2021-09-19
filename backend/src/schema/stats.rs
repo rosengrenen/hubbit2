@@ -313,7 +313,7 @@ fn sort_and_map_stats(
 ) -> Vec<Stat> {
   let prev_positions = if let Some(prev_stats) = prev_stats {
     let mut prev_stats = prev_stats
-      .into_iter()
+      .iter()
       .map(|(user_id, stat)| (*user_id, stat.duration_ms))
       .collect::<Vec<_>>();
     prev_stats.sort_by_key(|(_, dur)| -dur);
