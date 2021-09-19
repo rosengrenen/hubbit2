@@ -50,7 +50,7 @@ type Session {
 }
 type Stat {
 	user: User!
-	durationMinutes: Int!
+	durationSeconds: Int!
 }
 input StatsInput {
 	yearStats: YearStatsInput

@@ -25,7 +25,7 @@ const AllStatsTable = ({ stats }: props) => (
             <td>
               <a>{stat.user.nick}</a>
             </td>
-            <td>{convertMinutesToString(stat.durationMinutes)}</td>
+            <td>{convertMinutesToString(stat.durationSeconds)}</td>
           </tr>
         );
       })}
@@ -33,10 +33,12 @@ const AllStatsTable = ({ stats }: props) => (
   </table>
 );
 
-function convertMinutesToString(totalMinutes: number): string {
-  const minutes = Math.floor(totalMinutes % 60);
-  const hours = Math.floor((totalMinutes - minutes) / 60);
-  return `${numToStr(hours)}:${numToStr(minutes)}`;
+function convertMinutesToString(totalSeconds: number): string {
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor((totalSeconds / 60) % 60);
+  const hours = Math.floor(totalSeconds / 3600);
+
+  return `${numToStr(hours)}:${numToStr(minutes)}:${numToStr(seconds)}`;
 }
 
 function numToStr(num: number): string {

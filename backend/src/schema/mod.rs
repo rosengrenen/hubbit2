@@ -20,7 +20,7 @@ use crate::{
 use self::{
   device::DeviceMutation,
   me::MeQuery,
-  session::query::{ActiveSession, SessionQuery},
+  session::{ActiveSession, SessionQuery},
   stats::StatsQuery,
   user::User,
 };

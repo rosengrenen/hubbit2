@@ -18,7 +18,7 @@ export const STATS_QUERY = gql`
         cid
         nick
       }
-      durationMinutes
+      durationSeconds
     }
   }
 `;
