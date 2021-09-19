@@ -1,5 +1,4 @@
 use reqwest::{header::AUTHORIZATION, Client};
-use uuid::Uuid;
 
 use crate::{
   config::Config,
@@ -17,7 +16,7 @@ impl UserRepository {
     Self { config }
   }
 
-  pub async fn get_by_id(&self, id: Uuid) -> HubbitResult<GammaUser> {
+  pub async fn get(&self, id: String) -> HubbitResult<GammaUser> {
     let client = Client::new();
     let res = client
       .get(&format!(

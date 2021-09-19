@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, SimpleObject};
+use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,7 +10,42 @@ use crate::{
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
 
-use super::{device::Device, HubbitSchemaError, HubbitSchemaResult};
+use super::{device::Device, AuthGuard, HubbitSchemaError, HubbitSchemaResult};
+
+#[derive(Default)]
+pub struct UserQuery;
+
+#[derive(InputObject)]
+pub struct UserUniqueInput {
+  id: Option<Uuid>,
+  cid: Option<String>,
+}
+
+#[Object]
+impl UserQuery {
+  #[graphql(guard(AuthGuard()))]
+  pub async fn user(
+    &self,
+    context: &Context<'_>,
+    input: UserUniqueInput,
+  ) -> HubbitSchemaResult<User> {
+    let user_service = context.data_unchecked::<UserService>();
+    let user = if let Some(id) = input.id {
+      user_service
+        .get_by_id(id, false)
+        .await
+        .map_err(|_| HubbitSchemaError::InternalError)?
+    } else if let Some(cid) = input.cid {
+      user_service
+        .get_by_cid(cid)
+        .await
+        .map_err(|_| HubbitSchemaError::InternalError)?
+    } else {
+      return Err(HubbitSchemaError::InvalidInput);
+    };
+    Ok(User { id: user.id })
+  }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
