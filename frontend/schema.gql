@@ -47,6 +47,8 @@ type Session {
 type Stat {
 	user: User!
 	durationSeconds: Int!
+	currentPosition: Int!
+	prevPosition: Int
 }
 input StatsDayInput {
 	year: Int!
