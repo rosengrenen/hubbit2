@@ -12,8 +12,8 @@ import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../uti
 import styles from './index.module.scss';
 
 export const STATS_QUERY = gql`
-  query Stats($input: StatsInput) {
-    stats(input: $input) {
+  query Stats {
+    statsAlltime {
       user {
         cid
         nick
@@ -102,55 +102,55 @@ const AllStats: NextPage<PageProps<StatsQuery>> = ({ data }) => {
   );
 };
 
-function getInputProps(context: GetServerSidePropsContext) {
-  const timeFrame = context.query['timeframe'];
+// function getInputProps(context: GetServerSidePropsContext) {
+//   const timeFrame = context.query['timeframe'];
 
-  let statsInput: StatsInput = {};
-  const currentDate = new Date(Date.now());
-  switch (timeFrame) {
-    case ALL_TIME:
-      statsInput = {};
-      break;
-    case STUDY_PERIOD:
-      statsInput = {
-        studyPeriodStats: {
-          year: currentDate.getFullYear(),
-          // TODO(Vidde): Update when getting the current period is supported.
-          period: Period.Lp1,
-        },
-      };
-      break;
-    case MONTHLY:
-      statsInput = {
-        monthStats: {
-          year: currentDate.getFullYear(),
-          month: currentDate.getMonth(),
-        },
-      };
-      break;
-    case WEEKLY:
-      // TODO(Vidde): Implement when supported by BE
-      break;
-    case DAILY:
-      statsInput = {
-        dayStats: {
-          year: currentDate.getFullYear(),
-          month: currentDate.getMonth(),
-          day: currentDate.getDate(),
-        },
-      };
-      break;
-    case STUDY_YEAR:
-    default:
-      statsInput = {
-        studyYearStats: {
-          year: currentDate.getFullYear(),
-        },
-      };
-      break;
-  }
-  return { input: statsInput };
-}
+//   let statsInput: StatsInput = {};
+//   const currentDate = new Date(Date.now());
+//   switch (timeFrame) {
+//     case ALL_TIME:
+//       statsInput = {};
+//       break;
+//     case STUDY_PERIOD:
+//       statsInput = {
+//         studyPeriodStats: {
+//           year: currentDate.getFullYear(),
+//           // TODO(Vidde): Update when getting the current period is supported.
+//           period: Period.Lp1,
+//         },
+//       };
+//       break;
+//     case MONTHLY:
+//       statsInput = {
+//         monthStats: {
+//           year: currentDate.getFullYear(),
+//           month: currentDate.getMonth(),
+//         },
+//       };
+//       break;
+//     case WEEKLY:
+//       // TODO(Vidde): Implement when supported by BE
+//       break;
+//     case DAILY:
+//       statsInput = {
+//         dayStats: {
+//           year: currentDate.getFullYear(),
+//           month: currentDate.getMonth(),
+//           day: currentDate.getDate(),
+//         },
+//       };
+//       break;
+//     case STUDY_YEAR:
+//     default:
+//       statsInput = {
+//         studyYearStats: {
+//           year: currentDate.getFullYear(),
+//         },
+//       };
+//       break;
+//   }
+//   return { input: statsInput };
+// }
 
 function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string {
   if (typeof timeFrame === 'string') {
@@ -161,4 +161,4 @@ function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string
 
 export default AllStats;
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsQuery>(STATS_QUERY, getInputProps);
+export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsQuery>(STATS_QUERY);

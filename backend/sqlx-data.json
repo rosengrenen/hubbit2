@@ -50,6 +50,54 @@
       ]
     }
   },
+  "2270f0282a12559e896420705557b66828173b6bb973e45e8cb77a23164b6ca6": {
+    "query": "\nSELECT *\nFROM study_years\nWHERE start_date < NOW() AND NOW() < end_date\nLIMIT 1\n      ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "year",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "start_date",
+          "type_info": "Date"
+        },
+        {
+          "ordinal": 3,
+          "name": "end_date",
+          "type_info": "Date"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "2872539a545a9ea255105d95e0eed039dd04f0e9fceb9b6e8e5849506cb23430": {
     "query": "\nINSERT INTO devices (user_id, address, name)\nVALUES ($1, $2, $3)\nRETURNING *\n        ",
     "describe": {

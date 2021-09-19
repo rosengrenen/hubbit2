@@ -51,17 +51,17 @@ export interface PageProps<T> {
   data?: T;
 }
 
-export const defaultGetServerSidePropsWithCallbackInput = <Result>(
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables extends object = {}>(
   query: DocumentNode,
-  inputCallback: (context: GetServerSidePropsContext) => any,
+  inputCallback?: (context: GetServerSidePropsContext) => Variables,
 ) => {
   const getServerSideProps: GetServerSideProps<PageProps<Result>> = async context => {
     const headers = rawHeadersToDict(context.req.rawHeaders);
     const client = serverSideClient(headers);
-    const variables = inputCallback(context);
-    console.log("VARS:: '", variables, "'");
+    const variables = (inputCallback && inputCallback(context)) || undefined;
 
-    const { data, error } = await client.query<Result>(query, variables).toPromise();
+    const { data, error } = await client.query<Result, Variables>(query, variables).toPromise();
 
     let redirect: Redirect | undefined = undefined;
     if (error) {
