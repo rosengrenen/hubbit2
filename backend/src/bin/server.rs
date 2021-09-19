@@ -2,8 +2,9 @@ use std::collections::HashSet;
 
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
+use chrono::{Datelike, Duration, Local};
 use dotenv::dotenv;
-use log::{error, warn};
+use log::{error, info, warn};
 use mobc::Pool;
 use mobc_redis::{redis::Client, RedisConnectionManager};
 use sqlx::PgPool;
@@ -59,15 +60,20 @@ async fn main() -> HubbitResult<()> {
     SubscriptionRoot,
   )
   .data(device_repo)
-  .data(stats_service)
+  .data(stats_service.clone())
   .data(hour_stats_service)
   .data(study_period_repo)
   .data(study_year_repo)
-  .data(user_service)
+  .data(user_service.clone())
   .data(user_session_repo.clone())
   .finish();
 
   tokio::spawn(async move { track_sessions(user_session_repo).await });
+  tokio::spawn(async move {
+    init_cache(stats_service, user_service)
+      .await
+      .map_err(|e| warn!("Failed to init cache: {:?}", e))
+  });
 
   let config_clone = config.clone();
   Ok(
@@ -141,4 +147,55 @@ async fn get_active_users(
       .map(|session| session.user_id)
       .collect(),
   )
+}
+
+async fn init_cache(stats_service: StatsService, user_service: UserService) -> HubbitResult<()> {
+  let earliest_date = stats_service.get_earliest_date().await?;
+  let now = Local::now().naive_local().date();
+
+  // Check days
+  let mut date = earliest_date;
+  loop {
+    if date >= now {
+      break;
+    }
+
+    stats_service
+      .get_day(date.year(), date.month(), date.day())
+      .await?;
+
+    date += Duration::days(1);
+  }
+  info!("[Init cache] checked days");
+
+  // Check months
+  let mut year = earliest_date.year();
+  let mut month = earliest_date.month();
+  loop {
+    if year >= now.year() && month >= now.month() {
+      break;
+    }
+
+    stats_service.get_month(year, month).await?;
+
+    if month == 12 {
+      month = 1;
+      year += 1;
+    } else {
+      month += 1;
+    }
+  }
+  info!("[Init cache] checked months");
+
+  // Get alltime, since it caches full years
+  let alltime_stats = stats_service.get_alltime().await?;
+  info!("[Init cache] checked alltime");
+
+  // Check users
+  for user_id in alltime_stats.keys() {
+    user_service.get_by_id(*user_id, false).await?;
+  }
+  info!("[Init cache] checked users",);
+
+  Ok(())
 }

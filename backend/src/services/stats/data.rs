@@ -25,7 +25,7 @@ impl StatsService {
     Ok(calculate_stats(&sessions, start_time, end_time))
   }
 
-  pub(super) async fn get_earliest_date(&self) -> HubbitResult<NaiveDate> {
+  pub async fn get_earliest_date(&self) -> HubbitResult<NaiveDate> {
     let mut earliest_date_lock = self.earliest_date.lock().await;
     if let Some(earliest_date) = *earliest_date_lock {
       return Ok(earliest_date);
