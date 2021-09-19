@@ -3,6 +3,7 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
+use log::warn;
 use sqlx::PgPool;
 
 use crate::{
@@ -34,14 +35,25 @@ async fn update_sessions(
 
   let auth_header = match req.headers().get("Authorization") {
     Some(auth_header) => auth_header,
-    _ => return Ok(HttpResponse::Unauthorized().finish()),
+    _ => {
+      return {
+        warn!("[Update sessions] Missing authorization header");
+        Ok(HttpResponse::Unauthorized().finish())
+      }
+    }
   };
 
   let bearer = match Bearer::parse(auth_header) {
     Ok(bearer) => bearer,
-    _ => return Ok(HttpResponse::Unauthorized().finish()),
+    _ => {
+      warn!("[Update sessions] Invalid bearer token");
+      return Ok(HttpResponse::Unauthorized().finish());
+    }
   };
-  api_key_repo.get_by_key(bearer.token()).await?;
+  if api_key_repo.get_by_key(bearer.token()).await.is_err() {
+    warn!("[Update sessions] Invalid api key");
+    return Ok(HttpResponse::Unauthorized().finish());
+  };
 
   let devices = device_repo.get_by_addrs(&mac_addrs).await?;
 
@@ -53,7 +65,11 @@ async fn update_sessions(
   user_ids.dedup();
   user_session_repo
     .update_sessions(&user_ids, config.session_lifetime_s)
-    .await?;
+    .await
+    .map_err(|e| {
+      warn!("[Update sessions] Could not update user sessions");
+      e
+    })?;
 
   let devices = devices
     .into_iter()
@@ -61,7 +77,11 @@ async fn update_sessions(
     .collect::<Vec<_>>();
   session_repo
     .update_sessions(&devices, config.session_lifetime_s)
-    .await?;
+    .await
+    .map_err(|e| {
+      warn!("[Update sessions] Could not update sessions");
+      e
+    })?;
 
   Ok(HttpResponse::Ok().finish())
 }

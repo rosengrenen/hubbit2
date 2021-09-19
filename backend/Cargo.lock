@@ -746,6 +746,7 @@ dependencies = [
  "env_logger",
  "futures",
  "lazy_static",
+ "log",
  "mobc",
  "mobc-redis",
  "once_cell",
