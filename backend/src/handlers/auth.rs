@@ -3,6 +3,7 @@ use actix_web::{
   web::{self, ServiceConfig},
   HttpResponse,
 };
+use log::{error, warn};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
@@ -37,13 +38,19 @@ async fn gamma_init_flow(
     .collect();
   match session.set("gamma_state", &state) {
     Ok(_) => {}
-    Err(_) => return HttpResponse::InternalServerError().finish(),
+    Err(_) => {
+      error!("[Gamma auth] Could not set gamma_state key in cookie");
+      return HttpResponse::InternalServerError().finish();
+    }
   }
 
   match &query.from {
     Some(from) => match session.set("gamma_from", from) {
       Ok(_) => {}
-      Err(_) => return HttpResponse::InternalServerError().finish(),
+      Err(_) => {
+        error!("[Gamma auth] Could not set gamma_from key in cookie");
+        return HttpResponse::InternalServerError().finish();
+      }
     },
     None => {
       session.remove("gamma_from");
@@ -73,22 +80,30 @@ async fn gamma_callback(
   let saved_state = match session.get::<String>("gamma_state") {
     Ok(Some(saved_state)) => saved_state,
     _ => {
+      warn!("[Gamma auth] Could not retrieve gamma_state");
       return HttpResponse::InternalServerError().finish();
     }
   };
 
   if query.state != saved_state {
+    warn!("[Gamma auth] State mismatch");
     return HttpResponse::BadRequest().finish();
   }
 
   let token_response = match crate::utils::gamma::oauth2_token(&config, &query.code).await {
     Ok(token_response) => token_response,
-    Err(_) => return HttpResponse::BadRequest().finish(),
+    Err(_) => {
+      error!("[Gamma auth] Could not get gamma access token");
+      return HttpResponse::BadRequest().finish();
+    }
   };
 
   match session.set("gamma_access_token", token_response.access_token) {
     Ok(_) => {}
-    Err(_) => return HttpResponse::InternalServerError().finish(),
+    Err(_) => {
+      error!("[Gamma auth] Could not set gamma_acess_token key in cookie");
+      return HttpResponse::InternalServerError().finish();
+    }
   }
 
   let from = match session.get::<String>("gamma_from") {

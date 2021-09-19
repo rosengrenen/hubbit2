@@ -1,6 +1,7 @@
 use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
 use chrono::{DateTime, Local, TimeZone};
 use lazy_static::lazy_static;
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -92,10 +93,10 @@ impl StatsQuery {
       stats_service.get_lifetime().await
     };
 
-    let stats = match stats_result {
-      Ok(stats) => stats,
-      _ => return Err(HubbitSchemaError::InternalError),
-    };
+    let stats = stats_result.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
 
     if context.look_ahead().field("user").exists() {
       // Prefetch users to cache them if user field is queried
@@ -104,7 +105,10 @@ impl StatsQuery {
       user_service
         .get_by_ids(user_ids.as_slice(), false)
         .await
-        .map_err(|_| HubbitSchemaError::InternalError)?;
+        .map_err(|e| {
+          error!("[Schema error] {:?}", e);
+          HubbitSchemaError::InternalError
+        })?;
     }
 
     let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
@@ -123,10 +127,10 @@ impl StatsQuery {
   #[graphql(guard(AuthGuard()))]
   pub async fn current_study_period(&self, context: &Context<'_>) -> HubbitSchemaResult<Period> {
     let study_period_repo = context.data_unchecked::<StudyPeriodRepository>();
-    let current_study_period = study_period_repo
-      .get_current()
-      .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+    let current_study_period = study_period_repo.get_current().await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
     Ok(current_study_period.period.into())
   }
 }

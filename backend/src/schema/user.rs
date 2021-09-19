@@ -1,5 +1,6 @@
 use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
 use chrono::{DateTime, Utc};
+use log::error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -31,15 +32,15 @@ impl UserQuery {
   ) -> HubbitSchemaResult<User> {
     let user_service = context.data_unchecked::<UserService>();
     let user = if let Some(id) = input.id {
-      user_service
-        .get_by_id(id, false)
-        .await
-        .map_err(|_| HubbitSchemaError::InternalError)?
+      user_service.get_by_id(id, false).await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?
     } else if let Some(cid) = input.cid {
-      user_service
-        .get_by_cid(cid)
-        .await
-        .map_err(|_| HubbitSchemaError::InternalError)?
+      user_service.get_by_cid(cid).await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?
     } else {
       return Err(HubbitSchemaError::InvalidInput);
     };

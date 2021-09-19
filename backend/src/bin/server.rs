@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use actix_session::CookieSession;
 use actix_web::{middleware, web, App, HttpServer};
 use dotenv::dotenv;
+use log::{error, warn};
 use mobc::Pool;
 use mobc_redis::{redis::Client, RedisConnectionManager};
 use sqlx::PgPool;
@@ -89,7 +90,10 @@ async fn track_sessions(user_session_repo: UserSessionRepository) -> HubbitResul
   let mut present_users: HashSet<_> = loop {
     match get_active_users(&user_session_repo).await {
       Ok(present_users) => break present_users,
-      _ => tokio::time::delay_for(std::time::Duration::from_secs(5)).await,
+      _ => {
+        warn!("[Session tracker] Could not get initial active users, retrying in 5 seconds...");
+        tokio::time::delay_for(std::time::Duration::from_secs(5)).await
+      }
     }
   };
 
@@ -119,6 +123,8 @@ async fn track_sessions(user_session_repo: UserSessionRepository) -> HubbitResul
         present_users.remove(&absent_user);
         SimpleBroker::publish(UserEvent::Leave(absent_user));
       }
+    } else {
+      error!("[Session tracker] Could not get active users");
     }
   }
 }

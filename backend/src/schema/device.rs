@@ -1,4 +1,5 @@
 use async_graphql::{guard::Guard, Context, InputObject, Object};
+use log::error;
 use uuid::Uuid;
 
 use crate::{
@@ -20,19 +21,19 @@ impl Device {
 
   async fn address(&self, context: &Context<'_>) -> HubbitSchemaResult<String> {
     let device_repo = context.data_unchecked::<DeviceRepository>();
-    let device = device_repo
-      .get_by_id(self.id)
-      .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+    let device = device_repo.get_by_id(self.id).await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
     Ok(device.address)
   }
 
   async fn name(&self, context: &Context<'_>) -> HubbitSchemaResult<String> {
     let device_repo = context.data_unchecked::<DeviceRepository>();
-    let device = device_repo
-      .get_by_id(self.id)
-      .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+    let device = device_repo.get_by_id(self.id).await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
     Ok(device.name)
   }
 }
@@ -59,7 +60,10 @@ impl DeviceMutation {
         name: data.name,
       })
       .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
     Ok(Device { id: device.id })
   }
 
@@ -83,7 +87,10 @@ impl DeviceMutation {
     let device = device_repo
       .update(id, UpdateDevice { name: data.name })
       .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
     Ok(Device { id: device.id })
   }
 
@@ -99,10 +106,10 @@ impl DeviceMutation {
       return Err(HubbitSchemaError::NotAuthorized);
     }
 
-    device_repo
-      .delete(id)
-      .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+    device_repo.delete(id).await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
     Ok(true)
   }
 }
