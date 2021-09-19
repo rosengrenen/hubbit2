@@ -1,14 +1,18 @@
+use std::collections::HashMap;
+
 use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
-use chrono::{DateTime, Local, TimeZone};
-use lazy_static::lazy_static;
 use log::error;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
   models::Period,
-  repositories::study_period::StudyPeriodRepository,
+  repositories::{study_period::StudyPeriodRepository, study_year::StudyYearRepository},
   schema::{AuthGuard, HubbitSchemaError, HubbitSchemaResult},
-  services::{stats::StatsService, user::UserService},
+  services::{
+    stats::{Stat as ServiceStat, StatsService},
+    user::UserService,
+  },
 };
 
 use super::user::User;
@@ -20,46 +24,46 @@ pub struct Stat {
 }
 
 #[derive(InputObject)]
-pub struct StatsInput {
-  year_stats: Option<YearStatsInput>,
-  month_stats: Option<MonthStatsInput>,
-  day_stats: Option<DayStatsInput>,
-  study_year_stats: Option<StudyYearStatsInput>,
-  study_period_stats: Option<StudyPeriodStatsInput>,
-}
-
-#[derive(InputObject)]
-struct YearStatsInput {
+pub struct StatsStudyYearInput {
   year: i32,
 }
 
 #[derive(InputObject)]
-struct MonthStatsInput {
+pub struct StatsStudyPeriodInput {
+  year: i32,
+  period: Period,
+}
+
+#[derive(InputObject)]
+pub struct StatsMonthInput {
   year: i32,
   month: i32,
 }
 
 #[derive(InputObject)]
-struct DayStatsInput {
+pub struct StatsWeekInput {
+  year: i32,
+  week: i32,
+}
+
+#[derive(InputObject)]
+pub struct StatsDayInput {
   year: i32,
   month: i32,
   day: i32,
 }
 
-#[derive(InputObject)]
-struct StudyYearStatsInput {
+#[derive(SimpleObject)]
+pub struct StatsStudyYearPayload {
+  stats: Vec<Stat>,
   year: i32,
 }
 
-#[derive(InputObject)]
-struct StudyPeriodStatsInput {
+#[derive(SimpleObject)]
+pub struct StatsStudyPeriodPayload {
+  stats: Vec<Stat>,
   year: i32,
   period: Period,
-}
-
-lazy_static! {
-  static ref MIN_DATETIME: DateTime<Local> = Local.ymd(2000, 1, 1).and_hms(0, 0, 0);
-  static ref MAX_DATETIME: DateTime<Local> = Local.ymd(2099, 12, 31).and_hms(23, 59, 59);
 }
 
 #[derive(Default)]
@@ -68,69 +72,175 @@ pub struct StatsQuery;
 #[Object]
 impl StatsQuery {
   #[graphql(guard(AuthGuard()))]
-  pub async fn stats(
-    &self,
-    context: &Context<'_>,
-    input: Option<StatsInput>,
-  ) -> HubbitSchemaResult<Vec<Stat>> {
-    // TODO(rasmus): weekly stats
+  pub async fn stats_alltime(&self, context: &Context<'_>) -> HubbitSchemaResult<Vec<Stat>> {
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats_result = if let Some(input) = input {
-      if let Some(YearStatsInput { year }) = input.year_stats {
-        stats_service.get_year(year).await
-      } else if let Some(MonthStatsInput { year, month }) = input.month_stats {
-        stats_service.get_month(year, month as u32).await
-      } else if let Some(DayStatsInput { year, month, day }) = input.day_stats {
-        stats_service.get_day(year, month as u32, day as u32).await
-      } else if let Some(StudyYearStatsInput { year }) = input.study_year_stats {
-        stats_service.get_study_year(year).await
-      } else if let Some(StudyPeriodStatsInput { year, period }) = input.study_period_stats {
-        stats_service.get_study_period(year, period).await
-      } else {
-        stats_service.get_lifetime().await
-      }
-    } else {
-      stats_service.get_lifetime().await
-    };
-
-    let stats = stats_result.map_err(|e| {
+    let stats = stats_service.get_alltime().await.map_err(|e| {
       error!("[Schema error] {:?}", e);
       HubbitSchemaError::InternalError
     })?;
 
-    if context.look_ahead().field("user").exists() {
-      // Prefetch users to cache them if user field is queried
-      let user_service = context.data_unchecked::<UserService>();
-      let user_ids = stats.keys().copied().collect::<Vec<_>>();
-      user_service
-        .get_by_ids(user_ids.as_slice(), false)
+    prefetch_users(context, &stats).await?;
+
+    Ok(sort_and_map_stats(stats))
+  }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats_study_year(
+    &self,
+    context: &Context<'_>,
+    input: Option<StatsStudyYearInput>,
+  ) -> HubbitSchemaResult<StatsStudyYearPayload> {
+    let year = if let Some(input) = input {
+      input.year
+    } else {
+      let study_year_repo = context.data_unchecked::<StudyYearRepository>();
+      study_year_repo
+        .get_current()
         .await
         .map_err(|e| {
           error!("[Schema error] {:?}", e);
           HubbitSchemaError::InternalError
-        })?;
-    }
+        })?
+        .year
+    };
 
-    let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
-    stats.sort_by_key(|stat| -stat.duration_ms);
-    Ok(
-      stats
-        .iter()
-        .map(|stat| Stat {
-          user: User { id: stat.user_id },
-          duration_seconds: stat.duration_ms / 1000,
-        })
-        .collect(),
-    )
-  }
-
-  #[graphql(guard(AuthGuard()))]
-  pub async fn current_study_period(&self, context: &Context<'_>) -> HubbitSchemaResult<Period> {
-    let study_period_repo = context.data_unchecked::<StudyPeriodRepository>();
-    let current_study_period = study_period_repo.get_current().await.map_err(|e| {
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = stats_service.get_study_year(year).await.map_err(|e| {
       error!("[Schema error] {:?}", e);
       HubbitSchemaError::InternalError
     })?;
-    Ok(current_study_period.period.into())
+
+    prefetch_users(context, &stats).await?;
+
+    let stats = sort_and_map_stats(stats);
+    Ok(StatsStudyYearPayload { stats, year })
   }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats_study_period(
+    &self,
+    context: &Context<'_>,
+    input: Option<StatsStudyPeriodInput>,
+  ) -> HubbitSchemaResult<StatsStudyPeriodPayload> {
+    let (year, period) = if let Some(input) = input {
+      (input.year, input.period)
+    } else {
+      let study_period_repo = context.data_unchecked::<StudyPeriodRepository>();
+      let study_period = study_period_repo.get_current().await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+      (study_period.year, study_period.period.into())
+    };
+
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = stats_service
+      .get_study_period(year, period)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+
+    prefetch_users(context, &stats).await?;
+
+    let stats = sort_and_map_stats(stats);
+    Ok(StatsStudyPeriodPayload {
+      stats,
+      year,
+      period,
+    })
+  }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats_month(
+    &self,
+    context: &Context<'_>,
+    input: StatsMonthInput,
+  ) -> HubbitSchemaResult<Vec<Stat>> {
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = stats_service
+      .get_month(input.year, input.month as u32)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+
+    prefetch_users(context, &stats).await?;
+
+    Ok(sort_and_map_stats(stats))
+  }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats_week(
+    &self,
+    context: &Context<'_>,
+    input: StatsWeekInput,
+  ) -> HubbitSchemaResult<Vec<Stat>> {
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = stats_service
+      .get_week(input.year, input.week as u32)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+
+    prefetch_users(context, &stats).await?;
+
+    Ok(sort_and_map_stats(stats))
+  }
+
+  #[graphql(guard(AuthGuard()))]
+  pub async fn stats_day(
+    &self,
+    context: &Context<'_>,
+    input: StatsDayInput,
+  ) -> HubbitSchemaResult<Vec<Stat>> {
+    let stats_service = context.data_unchecked::<StatsService>();
+    let stats = stats_service
+      .get_day(input.year, input.month as u32, input.day as u32)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+
+    prefetch_users(context, &stats).await?;
+
+    Ok(sort_and_map_stats(stats))
+  }
+}
+
+async fn prefetch_users(
+  context: &Context<'_>,
+  stats: &HashMap<Uuid, ServiceStat>,
+) -> HubbitSchemaResult<()> {
+  if context.look_ahead().field("user").exists() {
+    // Prefetch users to cache them if user field is queried
+    let user_service = context.data_unchecked::<UserService>();
+    let user_ids = stats.keys().copied().collect::<Vec<_>>();
+    user_service
+      .get_by_ids(user_ids.as_slice(), false)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+  }
+
+  Ok(())
+}
+
+fn sort_and_map_stats(stats: HashMap<Uuid, ServiceStat>) -> Vec<Stat> {
+  let mut stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
+  stats.sort_by_key(|stat| -stat.duration_ms);
+  stats
+    .iter()
+    .map(|stat| Stat {
+      user: User { id: stat.user_id },
+      duration_seconds: stat.duration_ms / 1000 / 60,
+    })
+    .collect()
 }
