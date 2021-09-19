@@ -19,7 +19,7 @@ use crate::{
   RedisPool,
 };
 
-use self::util::{day_date_bounds, month_date_bounds, year_date_bounds};
+use self::util::{day_date_bounds, month_date_bounds, week_date_bounds};
 
 pub type DateTimeRange = (DateTime<Local>, DateTime<Local>);
 
@@ -65,14 +65,18 @@ impl StatsService {
     }
   }
 
-  pub async fn get_day(&self, year: i32, month: u32, day: u32) -> HubbitResult<Stats> {
-    let (start_date, end_date) = day_date_bounds(year, month, day);
+  pub async fn get_alltime(&self) -> HubbitResult<Stats> {
+    let now = Local::now();
+    let start_date = self.get_earliest_date().await?;
+    let end_date = now.date().naive_local();
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_month(&self, year: i32, month: u32) -> HubbitResult<Stats> {
-    let (start_date, end_date) = month_date_bounds(year, month);
-    self.get_range(start_date, end_date).await
+  pub async fn get_study_year(&self, year: i32) -> HubbitResult<Stats> {
+    let study_year = self.study_year_repo.get_by_year(year).await?;
+    self
+      .get_range(study_year.start_date, study_year.end_date)
+      .await
   }
 
   pub async fn get_study_period(&self, year: i32, period: Period) -> HubbitResult<Stats> {
@@ -85,20 +89,18 @@ impl StatsService {
       .await
   }
 
-  pub async fn get_study_year(&self, year: i32) -> HubbitResult<Stats> {
-    let (start_date, end_date) = self.study_year_repo.get_by_year(year).await?;
+  pub async fn get_month(&self, year: i32, month: u32) -> HubbitResult<Stats> {
+    let (start_date, end_date) = month_date_bounds(year, month);
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_year(&self, year: i32) -> HubbitResult<Stats> {
-    let (start_date, end_date) = year_date_bounds(year);
+  pub async fn get_week(&self, year: i32, week: u32) -> HubbitResult<Stats> {
+    let (start_date, end_date) = week_date_bounds(year, week);
     self.get_range(start_date, end_date).await
   }
 
-  pub async fn get_lifetime(&self) -> HubbitResult<Stats> {
-    let now = Local::now();
-    let start_date = self.get_earliest_date().await?;
-    let end_date = now.date().naive_local();
+  pub async fn get_day(&self, year: i32, month: u32, day: u32) -> HubbitResult<Stats> {
+    let (start_date, end_date) = day_date_bounds(year, month, day);
     self.get_range(start_date, end_date).await
   }
 }

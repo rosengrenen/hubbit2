@@ -198,13 +198,19 @@ fn leading_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)>
         .map(|month| (start_year, month))
         .collect()
     }
-  } else if start_month == 1 && start_date.day() > 1 {
+  } else if start_month == 1 && start_date.day() == 1 {
+    // If whole leading year, don't fetch individual months
+    Vec::new()
+  } else {
+    let start_month = if start_date.day() == 1 {
+      start_month
+    } else {
+      start_month + 1
+    };
+
     (start_month..=12)
       .map(|month| (start_year, month))
       .collect()
-  } else {
-    // If whole leading year, don't fetch individual months
-    Vec::new()
   }
 }
 

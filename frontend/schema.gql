@@ -12,19 +12,10 @@ Implement the DateTime<Utc> scalar
 The input/output is a string in RFC3339 format.
 """
 scalar DateTime
-input DayStatsInput {
-	year: Int!
-	month: Int!
-	day: Int!
-}
 type Device {
 	id: UUID!
 	address: String!
 	name: String!
-}
-input MonthStatsInput {
-	year: Int!
-	month: Int!
 }
 type MutationRoot {
 	createDevice(data: CreateDeviceInput!): Device!
@@ -40,9 +31,14 @@ enum Period {
 }
 type QueryRoot {
 	currentSessions: [ActiveSession!]!
-	stats(input: StatsInput): [Stat!]!
-	currentStudyPeriod: Period!
+	statsAlltime: [Stat!]!
+	statsStudyYear(input: StatsStudyYearInput): StatsStudyYearPayload!
+	statsStudyPeriod(input: StatsStudyPeriodInput): StatsStudyPeriodPayload!
+	statsMonth(input: StatsMonthInput!): [Stat!]!
+	statsWeek(input: StatsWeekInput!): [Stat!]!
+	statsDay(input: StatsDayInput!): [Stat!]!
 	me: User!
+	user(input: UserUniqueInput!): User!
 }
 type Session {
 	startTime: DateTime!
@@ -52,19 +48,34 @@ type Stat {
 	user: User!
 	durationSeconds: Int!
 }
-input StatsInput {
-	yearStats: YearStatsInput
-	monthStats: MonthStatsInput
-	dayStats: DayStatsInput
-	studyYearStats: StudyYearStatsInput
-	studyPeriodStats: StudyPeriodStatsInput
+input StatsDayInput {
+	year: Int!
+	month: Int!
+	day: Int!
 }
-input StudyPeriodStatsInput {
+input StatsMonthInput {
+	year: Int!
+	month: Int!
+}
+input StatsStudyPeriodInput {
 	year: Int!
 	period: Period!
 }
-input StudyYearStatsInput {
+type StatsStudyPeriodPayload {
+	stats: [Stat!]!
 	year: Int!
+	period: Period!
+}
+input StatsStudyYearInput {
+	year: Int!
+}
+type StatsStudyYearPayload {
+	stats: [Stat!]!
+	year: Int!
+}
+input StatsWeekInput {
+	year: Int!
+	week: Int!
 }
 type SubscriptionRoot {
 	userJoin: ActiveSession!
@@ -87,8 +98,9 @@ type User {
 	longestSession: Session
 	devices: [Device!]!
 }
-input YearStatsInput {
-	year: Int!
+input UserUniqueInput {
+	id: UUID
+	cid: String
 }
 schema {
 	query: QueryRoot

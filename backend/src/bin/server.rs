@@ -46,7 +46,7 @@ async fn main() -> HubbitResult<()> {
   // Create services
   let stats_service = StatsService::new(
     user_session_repo.clone(),
-    study_year_repo,
+    study_year_repo.clone(),
     study_period_repo.clone(),
     redis_pool.clone(),
   );
@@ -62,6 +62,7 @@ async fn main() -> HubbitResult<()> {
   .data(stats_service)
   .data(hour_stats_service)
   .data(study_period_repo)
+  .data(study_year_repo)
   .data(user_service)
   .data(user_session_repo.clone())
   .finish();

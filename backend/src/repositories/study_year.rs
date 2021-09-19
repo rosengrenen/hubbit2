@@ -1,4 +1,3 @@
-use chrono::NaiveDate;
 use sqlx::PgPool;
 
 use crate::{error::HubbitResult, models::StudyYear};
@@ -13,19 +12,35 @@ impl StudyYearRepository {
     Self { pool }
   }
 
-  pub async fn get_by_year(&self, year: i32) -> HubbitResult<(NaiveDate, NaiveDate)> {
-    let study_year: StudyYear = sqlx::query_as!(
-      StudyYear,
-      "
+  pub async fn get_by_year(&self, year: i32) -> HubbitResult<StudyYear> {
+    Ok(
+      sqlx::query_as!(
+        StudyYear,
+        "
 SELECT *
 FROM study_years
 WHERE year = $1
       ",
-      year
+        year
+      )
+      .fetch_one(&self.pool)
+      .await?,
     )
-    .fetch_one(&self.pool)
-    .await?;
+  }
 
-    Ok((study_year.start_date, study_year.end_date))
+  pub async fn get_current(&self) -> HubbitResult<StudyYear> {
+    Ok(
+      sqlx::query_as!(
+        StudyYear,
+        "
+SELECT *
+FROM study_years
+WHERE start_date < NOW() AND NOW() < end_date
+LIMIT 1
+      "
+      )
+      .fetch_one(&self.pool)
+      .await?,
+    )
   }
 }
