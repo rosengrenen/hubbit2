@@ -22,13 +22,13 @@ use self::{
   me::MeQuery,
   session::{ActiveSession, SessionQuery},
   stats::StatsQuery,
-  user::User,
+  user::{User, UserQuery},
 };
 
 pub type HubbitSchema = Schema<QueryRoot, MutationRoot, SubscriptionRoot>;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(SessionQuery, StatsQuery, MeQuery);
+pub struct QueryRoot(SessionQuery, StatsQuery, MeQuery, UserQuery);
 
 #[derive(MergedObject, Default)]
 pub struct MutationRoot(DeviceMutation);
