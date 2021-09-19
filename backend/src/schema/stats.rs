@@ -15,7 +15,7 @@ use super::user::User;
 #[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
 pub struct Stat {
   pub user: User,
-  pub duration_minutes: i64,
+  pub duration_seconds: i64,
 }
 
 #[derive(InputObject)]
@@ -114,7 +114,7 @@ impl StatsQuery {
         .iter()
         .map(|stat| Stat {
           user: User { id: stat.user_id },
-          duration_minutes: stat.duration_ms / 1000 / 60,
+          duration_seconds: stat.duration_ms / 1000,
         })
         .collect(),
     )
