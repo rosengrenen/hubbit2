@@ -24,6 +24,8 @@ services:
       GAMMA_API_KEY: hubbit
       GAMMA_CLIENT_ID: hubbit
       GAMMA_CLIENT_SECRET: hubbit
+      COOKIE_SECRET: bdvrJ2cYgPeaj6Tys5475QHoj7Qcenb2
+      COOKIE_SECURE: "false"
       RUST_LOG: ${BACKEND_LOG_LEVEL}
     ports:
       - ${BACKEND_PORT}:8080

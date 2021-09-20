@@ -78,18 +78,25 @@ async fn main() -> HubbitResult<()> {
   });
 
   let config_clone = config.clone();
+  let port = config.port.clone();
+  let cookie_secret = config.cookie_secret.clone();
+  let cookie_secure = config.cookie_secure;
+  if cookie_secret.as_bytes().len() != 32 {
+    panic!("Cookie secret must be exactly 32 bytes");
+  }
+
   Ok(
     HttpServer::new(move || {
       App::new()
         .wrap(middleware::Logger::default())
-        .wrap(CookieSession::signed(&[0; 32]).secure(false))
+        .wrap(CookieSession::private(cookie_secret.as_bytes()).secure(cookie_secure))
         .data(config_clone.clone())
         .data(db_pool.clone())
         .data(redis_pool.clone())
         .data(schema.clone())
         .service(web::scope("/api").configure(handlers::init))
     })
-    .bind(format!("0.0.0.0:{}", config.port))?
+    .bind(format!("0.0.0.0:{}", port))?
     .run()
     .await?,
   )
