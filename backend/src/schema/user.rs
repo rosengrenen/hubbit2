@@ -173,6 +173,20 @@ impl User {
     }))
   }
 
+  async fn total_time_seconds(&self, context: &Context<'_>) -> HubbitSchemaResult<i64> {
+    let user_session_repo = context.data_unchecked::<UserSessionRepository>();
+    let sessions = user_session_repo
+      .get_range_for_user(*MIN_DATETIME, *MAX_DATETIME, self.id)
+      .await
+      .map_err(|_| HubbitSchemaError::InternalError)?;
+
+    let duration_ms = sessions.iter().fold(0, |prev, cur| {
+      prev + (cur.end_time - cur.start_time).num_milliseconds()
+    });
+
+    Ok(duration_ms / 1000)
+  }
+
   pub async fn devices(&self, context: &Context<'_>) -> HubbitSchemaResult<Vec<Device>> {
     let auth_user = context
       .data::<GammaUser>()
