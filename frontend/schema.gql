@@ -16,6 +16,7 @@ type Device {
 	id: UUID!
 	address: String!
 	name: String!
+	isActive: Boolean!
 }
 type MutationRoot {
 	createDevice(data: CreateDeviceInput!): Device!
@@ -98,14 +99,12 @@ type User {
 	hourStats: [Int!]!
 	recentSessions: [Session!]!
 	longestSession: Session
+	totalTimeSeconds: Int!
 	devices: [Device!]!
 }
 input UserUniqueInput {
 	id: UUID
 	cid: String
-}
-input YearStatsInput {
-	year: Int!
 }
 schema {
 	query: QueryRoot
