@@ -104,6 +104,9 @@ input UserUniqueInput {
 	id: UUID
 	cid: String
 }
+input YearStatsInput {
+	year: Int!
+}
 schema {
 	query: QueryRoot
 	mutation: MutationRoot
