@@ -7,7 +7,6 @@ use log::warn;
 use sqlx::PgPool;
 
 use crate::{
-  config::Config,
   error::HubbitResult,
   repositories::{
     api_key::ApiKeyRepository, device::DeviceRepository, session::SessionRepository,
@@ -19,7 +18,6 @@ async fn update_sessions(
   mut mac_addrs: web::Json<Vec<String>>,
   req: web::HttpRequest,
   pool: web::Data<PgPool>,
-  config: web::Data<Config>,
 ) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
   let api_key_repo = ApiKeyRepository::new(pool.clone());
@@ -64,7 +62,7 @@ async fn update_sessions(
   user_ids.sort_unstable();
   user_ids.dedup();
   user_session_repo
-    .update_sessions(&user_ids, config.session_lifetime_s)
+    .update_sessions(&user_ids)
     .await
     .map_err(|e| {
       warn!("[Update sessions] Could not update user sessions");
@@ -75,13 +73,10 @@ async fn update_sessions(
     .into_iter()
     .map(|device| (device.user_id, device.address))
     .collect::<Vec<_>>();
-  session_repo
-    .update_sessions(&devices, config.session_lifetime_s)
-    .await
-    .map_err(|e| {
-      warn!("[Update sessions] Could not update sessions");
-      e
-    })?;
+  session_repo.update_sessions(&devices).await.map_err(|e| {
+    warn!("[Update sessions] Could not update sessions");
+    e
+  })?;
 
   Ok(HttpResponse::Ok().finish())
 }
