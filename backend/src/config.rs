@@ -10,6 +10,8 @@ pub struct Config {
   pub gamma_api_key: String,
   pub gamma_client_id: String,
   pub gamma_client_secret: String,
+  pub cookie_secret: String,
+  pub cookie_secure: bool,
 }
 
 impl Config {
@@ -23,6 +25,8 @@ impl Config {
       gamma_api_key: try_read_var("GAMMA_API_KEY")?,
       gamma_client_id: try_read_var("GAMMA_CLIENT_ID")?,
       gamma_client_secret: try_read_var("GAMMA_CLIENT_SECRET")?,
+      cookie_secret: try_read_var("COOKIE_SECRET")?,
+      cookie_secure: try_read_var("COOKIE_SECURE")?,
     })
   }
 }
