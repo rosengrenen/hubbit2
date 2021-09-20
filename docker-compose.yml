@@ -5,8 +5,8 @@ services:
       context: frontend
       dockerfile: dev.Dockerfile
     environment:
-      PORT: 3000
-      PROXY: http://localhost:8080
+      PORT: ${FRONTEND_PORT}
+      PROXY: http://localhost:${BACKEND_PORT}
     network_mode: host
     volumes:
       - ./frontend:/usr/src/app
@@ -24,7 +24,6 @@ services:
       GAMMA_API_KEY: hubbit
       GAMMA_CLIENT_ID: hubbit
       GAMMA_CLIENT_SECRET: hubbit
-      SESSION_LIFETIME_SECONDS: 750
       RUST_LOG: ${BACKEND_LOG_LEVEL}
     ports:
       - ${BACKEND_PORT}:8080
@@ -81,12 +80,6 @@ services:
       REDIS_HOST: gamma-redis
       REDIS_PASSWORD: ""
       REDIS_PORT: 6379
-
-      DEFAULT_CLIENT_NAME: hubbit
-      DEFAULT_CLIENT_ID: hubbit
-      DEFAULT_CLIENT_SECRET: hubbit
-      DEFAULT_REDIRECT_URI: http://localhost:${BACKEND_PORT}/auth/gamma/callback
-      DEFAULT_API_KEY: hubbit
 
       SERVER_PORT: 3000
       SUCCESSFUL_LOGIN: http://localhost:${LOCAL_GAMMA_FRONTEND_PORT}

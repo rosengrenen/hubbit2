@@ -17,8 +17,8 @@ use backend::{
   event::UserEvent,
   handlers,
   repositories::{
-    device::DeviceRepository, study_period::StudyPeriodRepository, study_year::StudyYearRepository,
-    user::UserRepository, user_session::UserSessionRepository,
+    device::DeviceRepository, session::SessionRepository, study_period::StudyPeriodRepository,
+    study_year::StudyYearRepository, user::UserRepository, user_session::UserSessionRepository,
   },
   schema::{HubbitSchema, MutationRoot, QueryRoot, SubscriptionRoot},
   services::{hour_stats::HourStatsService, stats::StatsService, user::UserService},
@@ -39,6 +39,7 @@ async fn main() -> HubbitResult<()> {
 
   // Create repos
   let device_repo = DeviceRepository::new(db_pool.clone());
+  let session_repo = SessionRepository::new(db_pool.clone());
   let study_period_repo = StudyPeriodRepository::new(db_pool.clone());
   let study_year_repo = StudyYearRepository::new(db_pool.clone());
   let user_repo = UserRepository::new(config.clone());
@@ -62,6 +63,7 @@ async fn main() -> HubbitResult<()> {
   .data(device_repo)
   .data(stats_service.clone())
   .data(hour_stats_service)
+  .data(session_repo)
   .data(study_period_repo)
   .data(study_year_repo)
   .data(user_service.clone())

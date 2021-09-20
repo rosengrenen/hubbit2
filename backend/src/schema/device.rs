@@ -4,7 +4,10 @@ use uuid::Uuid;
 
 use crate::{
   models::GammaUser,
-  repositories::device::{CreateDevice, DeviceRepository, UpdateDevice},
+  repositories::{
+    device::{CreateDevice, DeviceRepository, UpdateDevice},
+    session::SessionRepository,
+  },
 };
 
 use super::{AuthGuard, HubbitSchemaError, HubbitSchemaResult};
@@ -35,6 +38,23 @@ impl Device {
       HubbitSchemaError::InternalError
     })?;
     Ok(device.name)
+  }
+
+  async fn is_active(&self, context: &Context<'_>) -> HubbitSchemaResult<bool> {
+    let device_repo = context.data_unchecked::<DeviceRepository>();
+    let device = device_repo.get_by_id(self.id).await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
+    let session_repo = context.data_unchecked::<SessionRepository>();
+    let is_active = session_repo
+      .is_device_active(device.address)
+      .await
+      .map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+    Ok(is_active)
   }
 }
 
