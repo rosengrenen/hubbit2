@@ -39,16 +39,21 @@ const MacAddressesList = ({ initialDevices }: props) => {
       <table className={'data-table card-shadow'}>
         <thead>
           <tr className={'header-row'}>
-            <th>Changed?</th>
+            <th>Active</th>
             <th>MAC-Address</th>
             <th>Device Description</th>
+            <th>Changed</th>
             <th />
           </tr>
         </thead>
         <tbody>
           {devices.map((device, index) => (
             <tr key={index}>
-              <td className={styles.changedCell}>{device.unsavedChanges ? '*' : ' '}</td>
+              <td className={styles.statusColumn}>
+                <div
+                  className={styles.statusIndicator + ` ${index % 2 === 0 ? styles.activeInHub : styles.inactiveInHub}`}
+                />
+              </td>
               <td>
                 <input
                   className={styles.macTextField}
@@ -77,6 +82,7 @@ const MacAddressesList = ({ initialDevices }: props) => {
                   }}
                 />
               </td>
+              <td className={styles.changedCell}>{device.unsavedChanges ? '*' : ' '}</td>
               <td>
                 <button
                   className={styles.iconButton}

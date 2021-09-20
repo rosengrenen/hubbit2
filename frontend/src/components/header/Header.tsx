@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,7 +8,7 @@ import styles from './Header.module.scss';
 const MAIN_ENDPOINT = '/';
 const ME_ENDPOINT = '/me';
 const STATS_ENDPOINT = '/stats';
-const MY_STATS_ENDPOINT = '/my_stats';
+const MY_STATS_BASE_ENDPOINT = '/stats/';
 
 const Header = () => {
   const { pathname } = useRouter();
@@ -37,8 +37,8 @@ const Header = () => {
               <a>STATS</a>
             </Link>
           </li>
-          <li className={pathname === MY_STATS_ENDPOINT ? styles.active : ''}>
-            <Link href={MY_STATS_ENDPOINT}>
+          <li className={pathname.startsWith(MY_STATS_BASE_ENDPOINT) ? styles.active : ''}>
+            <Link href={`${MY_STATS_BASE_ENDPOINT}me`}>
               <a>MY STATS</a>
             </Link>
           </li>
