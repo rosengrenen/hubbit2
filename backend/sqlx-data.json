@@ -50,6 +50,58 @@
       ]
     }
   },
+  "20f231bc38f3c65bbe2c8dd690480a00d4204bc2ac55e2ad7ea40c2df541fcd1": {
+    "query": "\nUPDATE devices\nSET\n  address = $1,\n  name = $2\nWHERE id = $3\nRETURNING *\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_id",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "address",
+          "type_info": "Bpchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar",
+          "Varchar",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "2270f0282a12559e896420705557b66828173b6bb973e45e8cb77a23164b6ca6": {
     "query": "\nSELECT *\nFROM study_years\nWHERE start_date < NOW() AND NOW() < end_date\nLIMIT 1\n      ",
     "describe": {
@@ -785,57 +837,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "d6f763bfaac12b1cf73088e4f0bd3b018fca9022c44d3811772330c3bdadf8dd": {
-    "query": "\nUPDATE devices\nSET name = $1\nWHERE id = $2\nRETURNING *\n        ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 1,
-          "name": "user_id",
-          "type_info": "Uuid"
-        },
-        {
-          "ordinal": 2,
-          "name": "address",
-          "type_info": "Bpchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Uuid"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
     }
   },
   "d8aa702e3447a8c36bf204d8eb766cf707c422750ee7541e196601aba0154222": {

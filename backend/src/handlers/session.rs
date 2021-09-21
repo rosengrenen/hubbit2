@@ -4,6 +4,7 @@ use actix_web::{
 };
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
 use log::warn;
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::{
@@ -14,9 +15,14 @@ use crate::{
   },
 };
 
+#[derive(Deserialize)]
+struct SessionRequest {
+  macs: Vec<String>,
+}
+
 async fn update_sessions(
-  mut mac_addrs: web::Json<Vec<String>>,
-  req: web::HttpRequest,
+  mut session_req: web::Json<SessionRequest>,
+  http_req: web::HttpRequest,
   pool: web::Data<PgPool>,
 ) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
@@ -25,13 +31,14 @@ async fn update_sessions(
   let session_repo = SessionRepository::new(pool.clone());
   let user_session_repo = UserSessionRepository::new(pool);
 
+  let mac_addrs = &mut session_req.macs;
   for mac_addr in mac_addrs.iter_mut() {
     *mac_addr = mac_addr.to_uppercase();
   }
   mac_addrs.sort_unstable();
   mac_addrs.dedup();
 
-  let auth_header = match req.headers().get("Authorization") {
+  let auth_header = match http_req.headers().get("Authorization") {
     Some(auth_header) => auth_header,
     _ => {
       return {

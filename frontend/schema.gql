@@ -86,6 +86,7 @@ type SubscriptionRoot {
 }
 scalar UUID
 input UpdateDeviceInput {
+	address: String!
 	name: String!
 }
 type User {
