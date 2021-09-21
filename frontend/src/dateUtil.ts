@@ -5,6 +5,13 @@ export interface DateDiff {
   secondsSince: number;
 }
 
+const ONE_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
+const now = new Date(Date.now());
+
 export function dateDiffToAgoString(dateDiff: DateDiff) {
   if (dateDiff.daysSince === 0 && dateDiff.hoursSince === 0 && dateDiff.minutesSince === 0) {
     return 'Just now';
@@ -22,13 +29,6 @@ export function dateDiffToString(dateDiff: DateDiff) {
     ? `${dateDiff.minutesSince} minute${dateDiff.minutesSince === 1 ? '' : 's'}`
     : `${dateDiff.secondsSince} second${dateDiff.secondsSince === 1 ? '' : 's'}`;
 }
-
-const ONE_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
-
-const now = new Date(Date.now());
 
 export function timeSince(date: Date): DateDiff {
   return timeBetween(date, now);
