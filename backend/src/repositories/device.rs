@@ -85,10 +85,13 @@ RETURNING *
         Device,
         "
 UPDATE devices
-SET name = $1
-WHERE id = $2
+SET
+  address = $1,
+  name = $2
+WHERE id = $3
 RETURNING *
         ",
+        data.address,
         data.name,
         id,
       )
@@ -118,5 +121,6 @@ pub struct CreateDevice {
 }
 
 pub struct UpdateDevice {
+  pub address: String,
   pub name: String,
 }

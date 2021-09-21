@@ -105,7 +105,13 @@ impl DeviceMutation {
     }
 
     let device = device_repo
-      .update(id, UpdateDevice { name: data.name })
+      .update(
+        id,
+        UpdateDevice {
+          address: data.address,
+          name: data.name,
+        },
+      )
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
@@ -142,6 +148,7 @@ pub struct CreateDeviceInput {
 
 #[derive(InputObject)]
 pub struct UpdateDeviceInput {
+  address: String,
   name: String,
 }
 
