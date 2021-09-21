@@ -7,9 +7,8 @@ const Footer = () => (
     <div className={styles.divider} />
     <div className={styles.footerText}>
       <span>
-        Created with 💙 by <a href="https://github.com/rosengrenen">🌹</a> &{' '}
-        <a href="https://github.com/viddem">😈♟️🎩👽</a> with moral support from{' '}
-        <a href="https://github.com/hulthe">🐧</a>
+        Created with 💙 by <a href="https://github.com/rosengrenen">🌹 Rosen 🌹</a> &{' '}
+        <a href="https://github.com/viddem">✌ Vidde ✌</a>
       </span>
     </div>
   </footer>
