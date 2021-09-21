@@ -70,13 +70,12 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.3);
 }
 
 .activeInHub {
-  background-color: #00FF00;
+  background-color: #20D050;
 }
 .inactiveInHub {
   background-color: inherit;
+  border: 1px solid rgba(0, 0, 0, 0.4);
 }
