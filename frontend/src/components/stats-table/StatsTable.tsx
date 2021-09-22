@@ -1,12 +1,26 @@
 import React from 'react';
 
-import { StatsQuery } from '../../__generated__/graphql';
+import { gql } from '@urql/core';
 
-interface props {
-  stats: StatsQuery['stats'];
+import { StatsTableFragment } from '../../__generated__/graphql';
+
+interface Props {
+  stats: StatsTableFragment[];
 }
 
-const AllStatsTable = ({ stats }: props) => (
+export const STATS_TABLE_FRAGMENT = gql`
+  fragment StatsTable on Stat {
+    currentPosition
+    durationSeconds
+    prevPosition
+    user {
+      cid
+      nick
+    }
+  }
+`;
+
+const StatsTable = ({ stats }: Props) => (
   <table className={'data-table card-shadow'}>
     <thead>
       <tr className={'header-row'}>
@@ -45,4 +59,4 @@ function numToStr(num: number): string {
   return ('' + num).padStart(2, '0');
 }
 
-export default AllStatsTable;
+export default StatsTable;
