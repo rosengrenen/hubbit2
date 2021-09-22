@@ -50,8 +50,8 @@
       ]
     }
   },
-  "20f231bc38f3c65bbe2c8dd690480a00d4204bc2ac55e2ad7ea40c2df541fcd1": {
-    "query": "\nUPDATE devices\nSET\n  address = $1,\n  name = $2\nWHERE id = $3\nRETURNING *\n        ",
+  "17941bac79c37eb7fcc3c41f2c9d8d7f5873ca1604129435b04a742cf396a18b": {
+    "query": "\nUPDATE devices\nSET\n  address = $1,\n  name = $2\nWHERE address = $3\nRETURNING *\n        ",
     "describe": {
       "columns": [
         {
@@ -89,7 +89,7 @@
         "Left": [
           "Bpchar",
           "Varchar",
-          "Uuid"
+          "Bpchar"
         ]
       },
       "nullable": [
@@ -148,6 +148,18 @@
         false,
         false
       ]
+    }
+  },
+  "264bbd05b957d4de626dac6d6662eb5fcb4febdf165a75be3fac96ffc8d12199": {
+    "query": "\nDELETE FROM devices\nWHERE address = $1\n      ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      },
+      "nullable": []
     }
   },
   "2872539a545a9ea255105d95e0eed039dd04f0e9fceb9b6e8e5849506cb23430": {
@@ -825,18 +837,6 @@
         false,
         false
       ]
-    }
-  },
-  "d69704bf5f83c4d0a940d5e7788b07fad3de2045b8436b6aa743478b8836d2ef": {
-    "query": "\nDELETE FROM devices\nWHERE id = $1\n      ",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      },
-      "nullable": []
     }
   },
   "d8aa702e3447a8c36bf204d8eb766cf707c422750ee7541e196601aba0154222": {

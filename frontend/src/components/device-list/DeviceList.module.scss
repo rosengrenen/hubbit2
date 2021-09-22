@@ -13,7 +13,7 @@
   border-radius: 5px;
   cursor: pointer;
 
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.1), 0 2px 1px -2px rgba(0,0,0,0.1),0 1px 5px 0 rgba(0,0,0,0.1);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 1px -2px rgba(0, 0, 0, 0.1), 0 1px 5px 0 rgba(0, 0, 0, 0.1);
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.05);
@@ -59,7 +59,7 @@
 }
 
 .helpText {
-  margin-top: 1em
+  margin-top: 1em;
 }
 
 .statusColumn {
@@ -73,7 +73,7 @@
 }
 
 .activeInHub {
-  background-color: #20D050;
+  background-color: #20d050;
 }
 .inactiveInHub {
   background-color: inherit;

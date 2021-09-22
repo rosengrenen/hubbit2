@@ -64,90 +64,101 @@ pub struct DeviceMutation;
 #[Object]
 impl DeviceMutation {
   #[graphql(guard(AuthGuard()))]
-  pub async fn create_device(
+  pub async fn set_devices(
     &self,
     context: &Context<'_>,
-    data: CreateDeviceInput,
-  ) -> HubbitSchemaResult<Device> {
-    let address = data.address.to_uppercase();
-    validate_mac_addr(&address)?;
-    let device_repo = context.data_unchecked::<DeviceRepository>();
-    let auth_user = context.data_unchecked::<GammaUser>();
-    let device = device_repo
-      .create(CreateDevice {
-        user_id: auth_user.id,
-        address,
-        name: data.name,
-      })
-      .await
-      .map_err(|e| {
-        error!("[Schema error] {:?}", e);
-        HubbitSchemaError::InternalError
-      })?;
-    Ok(Device { id: device.id })
-  }
-
-  #[graphql(guard(AuthGuard()))]
-  pub async fn update_device(
-    &self,
-    context: &Context<'_>,
-    id: Uuid,
-    data: UpdateDeviceInput,
-  ) -> HubbitSchemaResult<Device> {
-    let device_repo = context.data_unchecked::<DeviceRepository>();
-    let auth_user = context.data_unchecked::<GammaUser>();
-    let device = device_repo
-      .get_by_id(id)
-      .await
-      .map_err(|_| HubbitSchemaError::NotFound)?;
-    if device.user_id != auth_user.id {
-      return Err(HubbitSchemaError::NotAuthorized);
+    mut data: SetDevicesInput,
+  ) -> HubbitSchemaResult<Vec<Device>> {
+    for device in data.devices.iter_mut() {
+      device.address = device.address.to_uppercase();
+      validate_mac_addr(&device.address)?;
     }
 
-    let device = device_repo
-      .update(
-        id,
-        UpdateDevice {
-          address: data.address,
-          name: data.name,
-        },
-      )
-      .await
-      .map_err(|e| {
-        error!("[Schema error] {:?}", e);
-        HubbitSchemaError::InternalError
-      })?;
-    Ok(Device { id: device.id })
-  }
-
-  #[graphql(guard(AuthGuard()))]
-  pub async fn delete_device(&self, context: &Context<'_>, id: Uuid) -> HubbitSchemaResult<bool> {
     let device_repo = context.data_unchecked::<DeviceRepository>();
     let auth_user = context.data_unchecked::<GammaUser>();
-    let device = device_repo
-      .get_by_id(id)
-      .await
-      .map_err(|_| HubbitSchemaError::NotFound)?;
-    if device.user_id != auth_user.id {
-      return Err(HubbitSchemaError::NotAuthorized);
-    }
-
-    device_repo.delete(id).await.map_err(|e| {
+    let current_devices = device_repo.get_for_user(auth_user.id).await.map_err(|e| {
       error!("[Schema error] {:?}", e);
       HubbitSchemaError::InternalError
     })?;
-    Ok(true)
+
+    let mut devices_to_create = Vec::new();
+    let mut devices_to_update = Vec::new();
+    let mut devices_to_remove = Vec::new();
+    for device in data.devices.iter().cloned() {
+      // If device doesn't exist, add to create list, else add to update list
+      if !current_devices.iter().any(|d| d.address == device.address) {
+        devices_to_create.push(device);
+      } else {
+        devices_to_update.push(device);
+      }
+    }
+
+    for device in current_devices.iter().cloned() {
+      // If device doesn't exist in list of new devices, add to remove list
+      if !data.devices.iter().any(|d| d.address == device.address) {
+        devices_to_remove.push(device);
+      }
+    }
+
+    for device in devices_to_remove {
+      device_repo.delete(&device.address).await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?;
+    }
+
+    for device in devices_to_update {
+      let address = device.address.clone();
+      device_repo
+        .update(
+          &address,
+          UpdateDevice {
+            address: device.address,
+            name: device.name,
+          },
+        )
+        .await
+        .map_err(|e| {
+          error!("[Schema error] {:?}", e);
+          HubbitSchemaError::InternalError
+        })?;
+    }
+
+    for device in devices_to_create {
+      device_repo
+        .create(CreateDevice {
+          address: device.address,
+          name: device.name,
+          user_id: auth_user.id,
+        })
+        .await
+        .map_err(|e| {
+          error!("[Schema error] {:?}", e);
+          HubbitSchemaError::InternalError
+        })?;
+    }
+
+    let current_devices = device_repo.get_for_user(auth_user.id).await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
+
+    Ok(
+      current_devices
+        .iter()
+        .map(|d| Device { id: d.id })
+        .collect(),
+    )
   }
 }
 
 #[derive(InputObject)]
-pub struct CreateDeviceInput {
-  address: String,
-  name: String,
+pub struct SetDevicesInput {
+  devices: Vec<DeviceInput>,
 }
 
-#[derive(InputObject)]
-pub struct UpdateDeviceInput {
+#[derive(Clone, InputObject)]
+pub struct DeviceInput {
   address: String,
   name: String,
 }

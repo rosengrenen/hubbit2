@@ -2,13 +2,33 @@ import React, { useState } from 'react';
 
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { gql } from '@urql/core';
 
-import { MeQuery } from '../../__generated__/graphql';
+import { DeviceFragment, useSetDevicesMutation } from '../../__generated__/graphql';
 
-import styles from './MacAddressesList.module.scss';
+import styles from './DeviceList.module.scss';
 
-interface props {
-  initialDevices: MeQuery['me']['devices'];
+export const DEVICE_FRAGMENT = gql`
+  fragment Device on Device {
+    id
+    address
+    name
+    isActive
+  }
+`;
+
+gql`
+  mutation SetDevices($input: SetDevicesInput!) {
+    setDevices(data: $input) {
+      ...Device
+    }
+  }
+
+  ${DEVICE_FRAGMENT}
+`;
+
+interface Props {
+  initialDevices: DeviceFragment[];
 }
 
 interface EditableDevice {
@@ -17,28 +37,20 @@ interface EditableDevice {
   savedAddress: string;
   savedDescription: string;
   isNew: boolean;
+  isActive: boolean;
   unsavedChanges: boolean;
 }
 
-const MacAddressesList = ({ initialDevices }: props) => {
-  const [devices, setDevices] = useState(
-    initialDevices.map(device => {
-      return {
-        address: device.address,
-        description: device.name,
-        savedAddress: device.address,
-        savedDescription: device.name,
-        isNew: false,
-        unsavedChanges: false,
-      };
-    }),
-  );
+const DeviceList = ({ initialDevices }: Props) => {
+  const [devices, setDevices] = useState(initState(initialDevices));
+
+  const [, updateDevices] = useSetDevicesMutation();
 
   return (
     <div className={styles.macAddressesWrapper}>
-      <table className={'data-table card-shadow'}>
+      <table className="data-table card-shadow">
         <thead>
-          <tr className={'header-row'}>
+          <tr className="header-row">
             <th>Active</th>
             <th>MAC-Address</th>
             <th>Device Description</th>
@@ -51,7 +63,7 @@ const MacAddressesList = ({ initialDevices }: props) => {
             <tr key={index}>
               <td className={styles.statusColumn}>
                 <div
-                  className={styles.statusIndicator + ` ${index % 2 === 0 ? styles.activeInHub : styles.inactiveInHub}`}
+                  className={styles.statusIndicator + ` ${device.isActive ? styles.activeInHub : styles.inactiveInHub}`}
                 />
               </td>
               <td>
@@ -72,7 +84,6 @@ const MacAddressesList = ({ initialDevices }: props) => {
                 <input
                   className={styles.macTextField}
                   value={device.description}
-                  readOnly={false}
                   onChange={e => {
                     const val = e.target.value.substring(0, 40);
                     const newDevice = device;
@@ -88,7 +99,7 @@ const MacAddressesList = ({ initialDevices }: props) => {
                   className={styles.iconButton}
                   onClick={() => {
                     if (window.confirm('Do you really want to delete this device?')) {
-                      setDevices(devices.filter((dev, i) => i !== index));
+                      setDevices(devices => devices.filter((_device, i) => i !== index));
                     }
                   }}
                 >
@@ -100,8 +111,8 @@ const MacAddressesList = ({ initialDevices }: props) => {
         </tbody>
       </table>
       <div className={styles.helpText}>
-        Don't know how to find your <a href={'https://en.wikipedia.org/wiki/MAC_address'}>MAC Address</a>? Take a look
-        at <a href={'https://www.wikihow.com/Find-the-MAC-Address-of-Your-Computer'}>this guide</a>!
+        Don&apos;t know how to find your <a href={'https://en.wikipedia.org/wiki/MAC_address'}>MAC Address</a>? Take a
+        look at <a href={'https://www.wikihow.com/Find-the-MAC-Address-of-Your-Computer'}>this guide</a>!
       </div>
       <button
         className={styles.saveButton}
@@ -113,6 +124,7 @@ const MacAddressesList = ({ initialDevices }: props) => {
               description: '',
               savedAddress: '',
               savedDescription: '',
+              isActive: false,
               unsavedChanges: true,
               isNew: true,
             },
@@ -125,8 +137,19 @@ const MacAddressesList = ({ initialDevices }: props) => {
         className={styles.saveButton}
         disabled={!devices.some(device => device.unsavedChanges)}
         onClick={() => {
-          // TODO(vidarm): Send the data to the server
-          console.log('Not implemented');
+          updateDevices({
+            input: {
+              devices: devices.map(device => ({
+                address: device.address,
+                name: device.description,
+              })),
+            },
+          }).then(({ data }) => {
+            // TODO(rasmus): if error show it to user
+            if (data) {
+              setDevices(initState(data.setDevices));
+            }
+          });
         }}
       >
         Save
@@ -139,4 +162,16 @@ function hasUnsavedChanges(device: EditableDevice): boolean {
   return device.isNew || device.address !== device.savedAddress || device.description !== device.savedDescription;
 }
 
-export default MacAddressesList;
+function initState(devices: DeviceFragment[]): EditableDevice[] {
+  return devices.map(device => ({
+    address: device.address,
+    description: device.name,
+    savedAddress: device.address,
+    savedDescription: device.name,
+    isActive: device.isActive,
+    isNew: false,
+    unsavedChanges: false,
+  }));
+}
+
+export default DeviceList;
