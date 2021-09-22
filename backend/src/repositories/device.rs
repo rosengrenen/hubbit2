@@ -79,7 +79,7 @@ RETURNING *
     )
   }
 
-  pub async fn update(&self, id: Uuid, data: UpdateDevice) -> HubbitResult<Device> {
+  pub async fn update(&self, addr: &str, data: UpdateDevice) -> HubbitResult<Device> {
     Ok(
       sqlx::query_as!(
         Device,
@@ -88,25 +88,25 @@ UPDATE devices
 SET
   address = $1,
   name = $2
-WHERE id = $3
+WHERE address = $3
 RETURNING *
         ",
         data.address,
         data.name,
-        id,
+        addr,
       )
       .fetch_one(&self.pool)
       .await?,
     )
   }
 
-  pub async fn delete(&self, id: Uuid) -> HubbitResult<()> {
+  pub async fn delete(&self, addr: &str) -> HubbitResult<()> {
     sqlx::query!(
       "
 DELETE FROM devices
-WHERE id = $1
+WHERE address = $1
       ",
-      id,
+      addr,
     )
     .execute(&self.pool)
     .await?;

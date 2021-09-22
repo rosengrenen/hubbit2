@@ -4,7 +4,7 @@ import { gql } from '@urql/core';
 import { NextPage } from 'next';
 
 import { MeQuery } from '../../__generated__/graphql';
-import MacAddressesList from '../../components/mac-addresses-list/MacAddressesList';
+import DeviceList, { DEVICE_FRAGMENT } from '../../components/device-list/DeviceList';
 import { defaultGetServerSideProps, PageProps } from '../../util';
 
 import styles from './index.module.scss';
@@ -15,11 +15,12 @@ const ME_QUERY = gql`
       cid
       nick
       devices {
-        address
-        name
+        ...Device
       }
     }
   }
+
+  ${DEVICE_FRAGMENT}
 `;
 
 const Index: NextPage<PageProps<MeQuery>> = ({ data }) => {
@@ -30,7 +31,7 @@ const Index: NextPage<PageProps<MeQuery>> = ({ data }) => {
   return (
     <div className={styles.meWrapper}>
       <h1>{data.me.nick}</h1>
-      <MacAddressesList initialDevices={data.me.devices} />
+      <DeviceList initialDevices={data.me.devices} />
     </div>
   );
 };
