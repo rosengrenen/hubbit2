@@ -1,0 +1,12 @@
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 250px;
+}
+
+.currentText {
+  font-weight: bold;
+  margin: 0 10px;
+}

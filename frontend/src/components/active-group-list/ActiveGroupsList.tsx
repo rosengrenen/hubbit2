@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { formatNick } from '../../util';
 
 import styles from './ActiveGroupsList.module.scss';
 
@@ -8,15 +9,24 @@ interface props {
   sessions: CurrentSessionsQuery['currentSessions'];
 }
 
+interface User {
+  cid: string;
+  nick: string;
+}
+
 const ActiveGroupsList = ({ sessions }: props) => {
-  const groupsMap: Map<string, string[]> = new Map<string, string[]>();
+  const groupsMap: Map<string, User[]> = new Map<string, User[]>();
   sessions.forEach(session => {
     session.user.groups.forEach(group => {
       let users = groupsMap.get(group);
+      const user = {
+        nick: formatNick(session.user.cid, session.user.nick),
+        cid: session.user.cid,
+      };
       if (users) {
-        users.push(session.user.nick);
+        users.push(user);
       } else {
-        users = [session.user.nick];
+        users = [user];
       }
       groupsMap.set(group, users);
     });
@@ -33,9 +43,9 @@ const ActiveGroupsList = ({ sessions }: props) => {
                 <th>{group}</th>
               </tr>
               {groupsMap.get(group)?.map(user => (
-                <tr key={user} className={'data-table-row'}>
+                <tr key={user.cid} className={'data-table-row'}>
                   <td className={styles.userRow}>
-                    <a href={'google.com'}>{user}</a>
+                    <a href={`user/${user.cid}`}>{user.nick}</a>
                   </td>
                 </tr>
               ))}

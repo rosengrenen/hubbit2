@@ -15,6 +15,7 @@ const CURRENT_SESSIONS_QUERY = gql`
     currentSessions {
       user {
         id
+        cid
         nick
         avatarUrl
         groups

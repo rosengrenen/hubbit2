@@ -69,8 +69,6 @@ export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables ext
         case GqlError.NOT_LOGGED_IN:
           redirect = authRedirect(context.resolvedUrl);
           break;
-        default:
-          throw error;
       }
     }
 
@@ -91,4 +89,23 @@ export const defaultGetServerSideProps = <Result, Variables extends object = {}>
   variables?: Variables,
 ) => {
   return defaultGetServerSidePropsWithCallbackInput(query, context => (variables ? variables : {}));
+};
+
+export const formatNick = (cid: string, nick: string) => {
+  switch (cid) {
+    // DON'T QUESTION THIS!
+    case 'mvidar':
+      return `✌ ${nick} ✌`;
+      break;
+    case 'rasros':
+      return `🌹 ${nick} 🌹`;
+      break;
+    case 'dahida':
+      return `💤 ${nick} 💤`;
+      break;
+    case 'hulthe':
+      return `🐧${nick}`;
+    default:
+      return nick;
+  }
 };

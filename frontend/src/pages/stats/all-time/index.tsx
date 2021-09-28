@@ -14,6 +14,10 @@ const STATS_ALL_TIME_QUERY = gql`
             ...StatsTable
         }
         ${STATS_TABLE_FRAGMENT}
+
+        me{
+            cid
+        }
     }
 `;
 
@@ -25,7 +29,7 @@ const AllTime: NextPage<PageProps<StatsAlltimeQuery>> = ({ data }) => {
   return (
     <div className={'statsWrapper'}>
       <StatsNavigation activeFrame={ALL_TIME} />
-      <StatsTable stats={data.statsAlltime} />
+      <StatsTable stats={data.statsAlltime} myCid={data.me.cid} />
     </div>
   );
 };
