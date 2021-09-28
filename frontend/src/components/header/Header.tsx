@@ -7,8 +7,8 @@ import styles from './Header.module.scss';
 
 const MAIN_ENDPOINT = '/';
 const ME_ENDPOINT = '/me';
-const STATS_ENDPOINT = '/stats';
-const MY_STATS_BASE_ENDPOINT = '/stats/';
+const STATS_BASE_ENDPOINT = '/stats/';
+const MY_STATS_ENDPOINT = '/user/me';
 
 const Header = () => {
   const { pathname } = useRouter();
@@ -32,13 +32,15 @@ const Header = () => {
               <a>SMURFS IN THE HUBB</a>
             </Link>
           </li>
-          <li className={pathname === STATS_ENDPOINT ? styles.active : ''}>
-            <Link href={STATS_ENDPOINT}>
+          <li
+            className={pathname.startsWith(STATS_BASE_ENDPOINT) && pathname !== MY_STATS_ENDPOINT ? styles.active : ''}
+          >
+            <Link href={`${STATS_BASE_ENDPOINT}study-year`}>
               <a>STATS</a>
             </Link>
           </li>
-          <li className={pathname.startsWith(MY_STATS_BASE_ENDPOINT) ? styles.active : ''}>
-            <Link href={`${MY_STATS_BASE_ENDPOINT}me`}>
+          <li className={pathname === MY_STATS_ENDPOINT ? styles.active : ''}>
+            <Link href={MY_STATS_ENDPOINT}>
               <a>MY STATS</a>
             </Link>
           </li>
