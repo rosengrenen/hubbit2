@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
-use chrono::{Datelike, Duration, Local, TimeZone};
+use chrono::{Datelike, Duration, Local, TimeZone, Utc};
 use log::error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -191,11 +191,18 @@ impl StatsQuery {
   pub async fn stats_month(
     &self,
     context: &Context<'_>,
-    input: StatsMonthInput,
+    input: Option<StatsMonthInput>,
   ) -> HubbitSchemaResult<Vec<Stat>> {
+    let (year, month) = if let Some(input) = input {
+      (input.year, input.month)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.month0() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_month(input.year, input.month as u32)
+      .get_month(year, month as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
@@ -203,9 +210,9 @@ impl StatsQuery {
       })?;
 
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
-      let (prev_year, prev_month) = match input.month {
-        1 => (input.year - 1, 12),
-        _ => (input.year, input.month - 1),
+      let (prev_year, prev_month) = match month {
+        1 => (year - 1, 12),
+        _ => (year, month - 1),
       };
       stats_service
         .get_month(prev_year, prev_month as u32)
@@ -224,11 +231,18 @@ impl StatsQuery {
   pub async fn stats_week(
     &self,
     context: &Context<'_>,
-    input: StatsWeekInput,
+    input: Option<StatsWeekInput>,
   ) -> HubbitSchemaResult<Vec<Stat>> {
+    let (year, week) = if let Some(input) = input {
+      (input.year, input.week)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.iso_week().week() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_week(input.year, input.week as u32)
+      .get_week(year, week as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
@@ -236,9 +250,9 @@ impl StatsQuery {
       })?;
 
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
-      let (prev_year, prev_week) = match input.week {
-        1 => (input.year - 1, 52),
-        _ => (input.year, input.week - 1),
+      let (prev_year, prev_week) = match week {
+        1 => (year - 1, 52),
+        _ => (year, week - 1),
       };
       stats_service
         .get_week(prev_year, prev_week as u32)
@@ -257,11 +271,18 @@ impl StatsQuery {
   pub async fn stats_day(
     &self,
     context: &Context<'_>,
-    input: StatsDayInput,
+    input: Option<StatsDayInput>,
   ) -> HubbitSchemaResult<Vec<Stat>> {
+    let (year, month, day) = if let Some(input) = input {
+      (input.year, input.month, input.day)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.month0() as i32, now.day0() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_day(input.year, input.month as u32, input.day as u32)
+      .get_day(year, month as u32, day as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
@@ -270,7 +291,7 @@ impl StatsQuery {
 
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
       let prev_day =
-        Local.ymd(input.year, input.month as u32, input.day as u32) - Duration::days(1);
+        Local.ymd(year, month as u32, day as u32) - Duration::days(1);
       stats_service
         .get_day(prev_day.year(), prev_day.month(), prev_day.day())
         .await
