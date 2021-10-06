@@ -1,5 +1,6 @@
-use async_graphql::{Context, Object, SimpleObject};
+use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
 use chrono::{DateTime, Utc};
+use log::error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -10,7 +11,42 @@ use crate::{
   utils::{MAX_DATETIME, MIN_DATETIME},
 };
 
-use super::{device::Device, HubbitSchemaError, HubbitSchemaResult};
+use super::{device::Device, AuthGuard, HubbitSchemaError, HubbitSchemaResult};
+
+#[derive(Default)]
+pub struct UserQuery;
+
+#[derive(InputObject)]
+pub struct UserUniqueInput {
+  id: Option<Uuid>,
+  cid: Option<String>,
+}
+
+#[Object]
+impl UserQuery {
+  #[graphql(guard(AuthGuard()))]
+  pub async fn user(
+    &self,
+    context: &Context<'_>,
+    input: UserUniqueInput,
+  ) -> HubbitSchemaResult<User> {
+    let user_service = context.data_unchecked::<UserService>();
+    let user = if let Some(id) = input.id {
+      user_service.get_by_id(id, false).await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?
+    } else if let Some(cid) = input.cid {
+      user_service.get_by_cid(cid).await.map_err(|e| {
+        error!("[Schema error] {:?}", e);
+        HubbitSchemaError::InternalError
+      })?
+    } else {
+      return Err(HubbitSchemaError::InvalidInput);
+    };
+    Ok(User { id: user.id })
+  }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
@@ -135,6 +171,20 @@ impl User {
       start_time: session.start_time,
       end_time: session.end_time,
     }))
+  }
+
+  async fn total_time_seconds(&self, context: &Context<'_>) -> HubbitSchemaResult<i64> {
+    let user_session_repo = context.data_unchecked::<UserSessionRepository>();
+    let sessions = user_session_repo
+      .get_range_for_user(*MIN_DATETIME, *MAX_DATETIME, self.id)
+      .await
+      .map_err(|_| HubbitSchemaError::InternalError)?;
+
+    let duration_ms = sessions.iter().fold(0, |prev, cur| {
+      prev + (cur.end_time - cur.start_time).num_milliseconds()
+    });
+
+    Ok(duration_ms / 1000)
   }
 
   pub async fn devices(&self, context: &Context<'_>) -> HubbitSchemaResult<Vec<Device>> {

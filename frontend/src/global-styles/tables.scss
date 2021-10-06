@@ -26,13 +26,14 @@
   }
 }
 
-.data-table tbody tr:hover {
-  background-color: #00b3e6;
+.data-table-row {
+  &:hover {
+    background-color: #00b3e6;
+  }
 }
 
 .data-table td, .data-table th {
   padding: 0 18px 12px 18px;
-  text-align: left;
 }
 
 .data-table td:first-of-type, .data-table th:first-of-type {
@@ -68,4 +69,8 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   padding-top: 12px;
   box-sizing: border-box;
+}
+
+.active-row {
+  background-color: rgba(220, 180, 0, 0.2);
 }

@@ -1,49 +1,58 @@
 import React from 'react';
 
-import { User } from '../../types/User';
+import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { formatNick } from '../../util';
 
 import styles from './ActiveGroupsList.module.scss';
 
 interface props {
-  users: User[];
+  sessions: CurrentSessionsQuery['currentSessions'];
 }
 
-const ActiveGroupsList = ({ users }: props) => {
-  const groupsMap: Map<string, string[]> = new Map<string, string[]>();
-  users.forEach(user => {
-    user.groups.forEach(group => {
+interface User {
+  cid: string;
+  nick: string;
+}
+
+const ActiveGroupsList = ({ sessions }: props) => {
+  const groupsMap: Map<string, User[]> = new Map<string, User[]>();
+  sessions.forEach(session => {
+    session.user.groups.forEach(group => {
       let users = groupsMap.get(group);
+      const user = {
+        nick: formatNick(session.user.cid, session.user.nick),
+        cid: session.user.cid,
+      };
       if (users) {
-        users.push(user.nick);
+        users.push(user);
       } else {
-        users = [user.nick];
+        users = [user];
       }
       groupsMap.set(group, users);
     });
   });
 
   return (
-    <div className={styles.activeGroupsList}>
-      <div>
-        {Array.from(groupsMap.keys()).map(group => (
-          <div key={group} className={styles.groupBoxContainer}>
-            <table key={group} className={'data-table card-shadow '}>
-              <tbody>
-                <tr className={'header-row'} id={group}>
-                  <th>{group}</th>
+    <div className={styles.activeGroupsContainer}>
+      {Array.from(groupsMap.keys()).map(group => (
+        <div key={group} className={styles.groupBoxContainer}>
+          {/*TODO(vidarm): Rewrite without table */}
+          <table key={group} className={'data-table card-shadow '}>
+            <tbody>
+              <tr className={'header-row'} id={group}>
+                <th>{group}</th>
+              </tr>
+              {groupsMap.get(group)?.map(user => (
+                <tr key={user.cid} className={'data-table-row'}>
+                  <td className={styles.userRow}>
+                    <a href={`user/${user.cid}`}>{user.nick}</a>
+                  </td>
                 </tr>
-                {groupsMap.get(group).map(user => (
-                  <tr key={user}>
-                    <td className={'userRow'}>
-                      <a href={'google.com'}>{user}</a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
     </div>
   );
 };

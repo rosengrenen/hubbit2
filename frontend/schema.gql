@@ -1,0 +1,112 @@
+type ActiveSession {
+	user: User!
+	startTime: DateTime!
+}
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+type Device {
+	id: UUID!
+	address: String!
+	name: String!
+	isActive: Boolean!
+}
+input DeviceInput {
+	address: String!
+	name: String!
+}
+type MutationRoot {
+	setDevices(data: SetDevicesInput!): [Device!]!
+}
+enum Period {
+	SUMMER
+	LP1
+	LP2
+	LP3
+	LP4
+}
+type QueryRoot {
+	currentSessions: [ActiveSession!]!
+	statsAlltime: [Stat!]!
+	statsStudyYear(input: StatsStudyYearInput): StatsStudyYearPayload!
+	statsStudyPeriod(input: StatsStudyPeriodInput): StatsStudyPeriodPayload!
+	statsMonth(input: StatsMonthInput!): [Stat!]!
+	statsWeek(input: StatsWeekInput!): [Stat!]!
+	statsDay(input: StatsDayInput!): [Stat!]!
+	me: User!
+	user(input: UserUniqueInput!): User!
+}
+type Session {
+	startTime: DateTime!
+	endTime: DateTime!
+}
+input SetDevicesInput {
+	devices: [DeviceInput!]!
+}
+type Stat {
+	user: User!
+	durationSeconds: Int!
+	currentPosition: Int!
+	prevPosition: Int
+}
+input StatsDayInput {
+	year: Int!
+	month: Int!
+	day: Int!
+}
+input StatsMonthInput {
+	year: Int!
+	month: Int!
+}
+input StatsStudyPeriodInput {
+	year: Int!
+	period: Period!
+}
+type StatsStudyPeriodPayload {
+	stats: [Stat!]!
+	year: Int!
+	period: Period!
+}
+input StatsStudyYearInput {
+	year: Int!
+}
+type StatsStudyYearPayload {
+	stats: [Stat!]!
+	year: Int!
+}
+input StatsWeekInput {
+	year: Int!
+	week: Int!
+}
+type SubscriptionRoot {
+	userJoin: ActiveSession!
+	userLeave: User!
+}
+scalar UUID
+type User {
+	id: UUID!
+	cid: String!
+	nick: String!
+	firstName: String!
+	lastName: String!
+	avatarUrl: String!
+	groups: [String!]!
+	hourStats: [Int!]!
+	recentSessions: [Session!]!
+	longestSession: Session
+	totalTimeSeconds: Int!
+	devices: [Device!]!
+}
+input UserUniqueInput {
+	id: UUID
+	cid: String
+}
+schema {
+	query: QueryRoot
+	mutation: MutationRoot
+	subscription: SubscriptionRoot
+}
+

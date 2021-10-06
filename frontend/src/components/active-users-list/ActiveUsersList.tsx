@@ -1,20 +1,21 @@
 import React from 'react';
 
-import { User } from '../../types/User';
+import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { formatNick } from '../../util';
 
 import styles from './ActiveUsersList.module.scss';
 
 interface props {
-  users: User[];
+  sessions: CurrentSessionsQuery['currentSessions'];
 }
 
-const ActiveUsersList = ({ users }: props) => {
+const ActiveUsersList = ({ sessions }: props) => {
   const currTime: Date = new Date(Date.now());
 
   return (
     <div className={styles.activeSmurfsWrapper}>
       <div>
-        There are {1} smurfs in the Hubb right now!
+        There are {sessions.length} smurfs in the Hubb right now!
         <table className={'data-table card-shadow ' + styles.activeSmurfsTable}>
           <thead>
             <tr className={'header-row'}>
@@ -23,17 +24,21 @@ const ActiveUsersList = ({ users }: props) => {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
-              <tr key={user.nick}>
-                <td className={styles.userRow}>
-                  <a>{user.nick}</a>
-                </td>
-                <td className={styles.timeCell}>
-                  {formatTime(user.activeSince)}
-                  <time>{getHoursDiff(user.activeSince, currTime)}</time>
-                </td>
-              </tr>
-            ))}
+            {sessions.map(session => {
+              const startTime = new Date(session.startTime);
+
+              return (
+                <tr key={session.user.nick} className={'data-table-row'}>
+                  <td className={styles.userRow}>
+                    <a href={'google.com'}>{formatNick(session.user.cid, session.user.nick)}</a>
+                  </td>
+                  <td className={styles.timeCell}>
+                    {formatTime(startTime)}
+                    <time>{getHoursDiff(startTime, currTime)}</time>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -48,9 +53,7 @@ function formatTime(time: Date): string {
 const oneHour = 1000 * 60 * 60;
 const oneMinute = 1000 * 60;
 function getHoursDiff(a: Date, b: Date): string {
-  console.log('Date a: ', a, ' | b: ', b);
   const diffTime = Math.abs(a.getTime() - b.getTime());
-  console.log('diff: ', diffTime);
   const diffHours = Math.round(diffTime / oneHour);
   if (diffHours >= 1) {
     return `(${diffHours} hours)`;

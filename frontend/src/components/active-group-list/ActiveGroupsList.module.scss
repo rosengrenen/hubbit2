@@ -1,4 +1,4 @@
-.activeGroupsList {
+.activeGroupsContainer {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -6,9 +6,14 @@
   padding: 4em 0;
   width: 45%;
 
+
   @media (max-width: 810px) {
     width: 100%;
   }
+}
+
+.userRow {
+  text-align: center !important;
 }
 
 .groupBoxContainer {
@@ -18,6 +23,6 @@
   flex-basis: 150px;
 }
 
-.activeGroupsList th {
+.activeGroupsContainer th {
   text-align: center;
 }

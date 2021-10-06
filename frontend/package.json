@@ -8,23 +8,35 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "yarn generate-gql-types && next build",
     "clean": "rimraf .next",
-    "dev": "next dev -p $PORT",
-    "lint:check": "eslint --ext .ts,.tsx . && yarn prettier:check",
-    "lint:fix": "eslint --ext .ts,.tsx --fix . && yarn prettier:fix",
-    "prettier:check": "prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
-    "prettier:fix": "prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "dev": "yarn generate-gql-types && next dev",
+    "generate-gql-types": "graphql-codegen",
+    "lint:check": "yarn generate-gql-types && eslint --ignore-path .gitignore --ext .ts,.tsx . && yarn prettier:check",
+    "lint:fix": "yarn generate-gql-types && eslint --ignore-path .gitignore --ext .ts,.tsx --fix . && yarn prettier:fix",
+    "prettier:check": "yarn generate-gql-types && prettier --list-different --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "prettier:fix": "yarn generate-gql-types && prettier --write --loglevel error --ignore-path .gitignore \"**/*.{ts,tsx,js,jsx,json,yml,yaml}\"",
+    "generate-gql-schema": "cd ../backend && cargo run --bin export_sdl > ../frontend/schema.gql",
     "start": "next start",
-    "test": "jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
+    "test": "yarn generate-gql-types && jest -c ./.jestrc.json \".*\\.test\\.(ts|js)\" --passWithNoTests"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.15",
+    "graphql": "^15.5.3",
     "next": "^11.1.2",
+    "npm": "^7.24.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "sass": "^1.39.0"
+    "sass": "^1.39.0",
+    "urql": "^2.0.4"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^2.2.0",
+    "@graphql-codegen/typescript": "^2.2.2",
+    "@graphql-codegen/typescript-operations": "^2.1.4",
+    "@graphql-codegen/typescript-urql": "^3.2.0",
     "@types/jest": "^26.0.21",
     "@types/node": "^14.14.35",
     "@types/react": "^17.0.3",

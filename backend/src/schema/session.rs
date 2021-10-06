@@ -1,5 +1,6 @@
 use async_graphql::{guard::Guard, Context, Object, SimpleObject};
 use chrono::{DateTime, Utc};
+use log::error;
 
 use crate::{
   repositories::user_session::UserSessionRepository,
@@ -17,10 +18,10 @@ impl SessionQuery {
     context: &Context<'_>,
   ) -> HubbitSchemaResult<Vec<ActiveSession>> {
     let user_session_repo = context.data_unchecked::<UserSessionRepository>();
-    let active_sessions = user_session_repo
-      .get_active()
-      .await
-      .map_err(|_| HubbitSchemaError::InternalError)?;
+    let active_sessions = user_session_repo.get_active().await.map_err(|e| {
+      error!("[Schema error] {:?}", e);
+      HubbitSchemaError::InternalError
+    })?;
     Ok(
       active_sessions
         .iter()

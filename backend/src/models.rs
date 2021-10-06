@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Clone, Debug, sqlx::FromRow)]
 pub struct Device {
   pub id: Uuid,
   pub user_id: Uuid,

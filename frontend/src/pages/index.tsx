@@ -1,48 +1,43 @@
 import React from 'react';
 
+import { gql } from '@urql/core';
+import { NextPage } from 'next';
+
+import { CurrentSessionsQuery } from '../__generated__/graphql';
+import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
 import ActiveUsersList from '../components/active-users-list/ActiveUsersList';
-import { User } from '../types/User';
+import { defaultGetServerSideProps, PageProps } from '../util';
 
 import styles from './index.module.scss';
-import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
 
-const mockData: User[] = [
-  {
-    nick: 'Simpen',
-    activeSince: new Date(2021, 8, 12, 20, 0, 0, 111),
-    groups: ['sexit', 'prit'],
-  },
-  {
-    nick: 'Hanz',
-    activeSince: new Date(2021, 8, 12, 19, 21, 0, 5),
-    groups: ['sexit', 'styrit'],
-  },
-  {
-    nick: 'Kaffe',
-    activeSince: new Date(2021, 8, 12, 18, 3, 0, 873),
-    groups: ['talperson', '8-bit'],
-  },
-  {
-    nick: 'Hoidi',
-    activeSince: new Date(2021, 8, 12, 17, 9, 0, 111),
-    groups: ['prit', 'styrit'],
-  },
-  {
-    nick: 'Rille',
-    activeSince: new Date(2021, 8, 9, 20, 0, 0, 111),
-    groups: [],
-  },
-];
+const CURRENT_SESSIONS_QUERY = gql`
+  query CurrentSessions {
+    currentSessions {
+      user {
+        id
+        cid
+        nick
+        avatarUrl
+        groups
+      }
+      startTime
+    }
+  }
+`;
 
-const Home = () => {
+const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
+  if (!data) {
+    return null;
+  }
+
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.sessionsContainer}>
-        <ActiveUsersList users={mockData} />
-        <ActiveGroupsList users={mockData} />
-      </div>
+    <div className={styles.sessionsContainer}>
+      <ActiveUsersList sessions={data.currentSessions} />
+      <ActiveGroupsList sessions={data.currentSessions} />
     </div>
   );
 };
+
+export const getServerSideProps = defaultGetServerSideProps<CurrentSessionsQuery>(CURRENT_SESSIONS_QUERY);
 
 export default Home;

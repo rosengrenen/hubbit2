@@ -4,15 +4,49 @@
   width: 100%;
   background-color: $primary-color;
   color: white;
-  padding: 20px 10px;
+  padding: 20px 10px 0 10px;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-content: center;
+  flex-direction: column;
   box-shadow: 0 4px 10px 0px #AAAAAA;
   font-weight: 200;
 }
 
 .title {
   margin: auto 0;
+  color: white;
+}
+
+.menu {
+  font-size: 1.3em;
+
+  li {
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    padding: 16px;
+    font-size: 14px;
+
+    a {
+      color: #fff;
+      opacity: 0.6;
+
+      &:hover {
+        opacity: 1;
+        color: #fff;
+      }
+    }
+
+    &.active {
+      border-bottom: 3px solid #fff;
+    }
+
+    @media screen and (max-width: 580px) {
+      padding: 5px;
+    }
+
+    @media screen and (max-width: 450px) {
+      padding: 5px 3px;
+      font-size: 12px;
+    }
+  }
 }

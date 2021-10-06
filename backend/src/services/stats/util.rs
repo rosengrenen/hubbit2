@@ -1,13 +1,10 @@
-use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone};
+use chrono::{DateTime, Duration, Local, NaiveDate, TimeZone, Weekday};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::{
-  models::UserSession,
-  schema::{stats::Stat, user::User},
-};
+use crate::models::UserSession;
 
-use super::DateTimeRange;
+use super::{DateTimeRange, Stat};
 
 pub fn map_sessions(sessions: Vec<UserSession>) -> HashMap<Uuid, Vec<DateTimeRange>> {
   let mut sessions_map = HashMap::new();
@@ -32,27 +29,27 @@ pub fn calculate_stats(
   user_sessions
     .iter()
     .map(|(&user_id, sessions)| {
-      let minutes = sessions.iter().fold(0, |prev, &(start_time, end_time)| {
-        // Don't count session time outside of the range
-        let session_minutes = if end_time > range_end_time {
-          (range_end_time - start_time).num_seconds() as i32
-        } else if start_time < range_start_time {
-          (end_time - range_start_time).num_seconds() as i32
-        } else {
-          (end_time - start_time).num_seconds() as i32
-        };
+      let session_duration =
+        sessions
+          .iter()
+          .fold(Duration::zero(), |prev, &(start_time, end_time)| {
+            // Don't count session time outside of the range
+            let session_minutes = if end_time > range_end_time {
+              range_end_time - start_time
+            } else if start_time < range_start_time {
+              end_time - range_start_time
+            } else {
+              end_time - start_time
+            };
 
-        prev + session_minutes
-      });
-
-      let minutes = minutes / 60;
+            prev + session_minutes
+          });
 
       (
         user_id,
         Stat {
-          user: User { id: user_id },
-          score: minutes,
-          time: minutes,
+          user_id,
+          duration_ms: session_duration.num_milliseconds(),
         },
       )
     })
@@ -64,16 +61,15 @@ pub fn join_stats(stats: &mut HashMap<Uuid, Stat>, other_stats: &HashMap<Uuid, S
     stats
       .entry(*user_id)
       .and_modify(|s| {
-        s.score += stat.score;
-        s.time += stat.time;
+        s.duration_ms += stat.duration_ms;
       })
       .or_insert_with(|| stat.clone());
   }
 }
 
-pub fn day_time_bounds(year: i32, month: u32, day: u32) -> (DateTime<Local>, DateTime<Local>) {
-  let start_time = Local.ymd(year, month, day).and_hms(0, 0, 0);
-  let end_time = Local.ymd(year, month, day).and_hms(23, 59, 59);
+pub fn year_time_bounds(year: i32) -> (DateTime<Local>, DateTime<Local>) {
+  let start_time = Local.ymd(year, 1, 1).and_hms(0, 0, 0);
+  let end_time = Local.ymd(year, 12, 31).and_hms(23, 59, 59);
   (start_time, end_time)
 }
 
@@ -87,15 +83,9 @@ pub fn month_time_bounds(year: i32, month: u32) -> (DateTime<Local>, DateTime<Lo
   (start_time, end_time)
 }
 
-pub fn year_time_bounds(year: i32) -> (DateTime<Local>, DateTime<Local>) {
-  let start_time = Local.ymd(year, 1, 1).and_hms(0, 0, 0);
-  let end_time = Local.ymd(year, 12, 31).and_hms(23, 59, 59);
-  (start_time, end_time)
-}
-
-pub fn day_date_bounds(year: i32, month: u32, day: u32) -> (NaiveDate, NaiveDate) {
-  let start_time = Local.ymd(year, month, day).naive_local();
-  let end_time = Local.ymd(year, month as u32, day as u32).naive_local();
+pub fn day_time_bounds(year: i32, month: u32, day: u32) -> (DateTime<Local>, DateTime<Local>) {
+  let start_time = Local.ymd(year, month, day).and_hms(0, 0, 0);
+  let end_time = Local.ymd(year, month, day).and_hms(23, 59, 59);
   (start_time, end_time)
 }
 
@@ -110,8 +100,14 @@ pub fn month_date_bounds(year: i32, month: u32) -> (NaiveDate, NaiveDate) {
   (start_time, end_time)
 }
 
-pub fn year_date_bounds(year: i32) -> (NaiveDate, NaiveDate) {
-  let start_time = Local.ymd(year, 1, 1).naive_local();
-  let end_time = Local.ymd(year, 12, 31).naive_local();
+pub fn week_date_bounds(year: i32, week: u32) -> (NaiveDate, NaiveDate) {
+  let start_time = NaiveDate::from_isoywd(year, week, Weekday::Mon);
+  let end_time = NaiveDate::from_isoywd(year, week, Weekday::Sun);
+  (start_time, end_time)
+}
+
+pub fn day_date_bounds(year: i32, month: u32, day: u32) -> (NaiveDate, NaiveDate) {
+  let start_time = Local.ymd(year, month, day).naive_local();
+  let end_time = Local.ymd(year, month as u32, day as u32).naive_local();
   (start_time, end_time)
 }

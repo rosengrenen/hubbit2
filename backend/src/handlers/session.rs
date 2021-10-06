@@ -3,10 +3,11 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
+use log::warn;
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::{
-  config::Config,
   error::HubbitResult,
   repositories::{
     api_key::ApiKeyRepository, device::DeviceRepository, session::SessionRepository,
@@ -14,11 +15,15 @@ use crate::{
   },
 };
 
+#[derive(Deserialize)]
+struct SessionRequest {
+  macs: Vec<String>,
+}
+
 async fn update_sessions(
-  mut mac_addrs: web::Json<Vec<String>>,
-  req: web::HttpRequest,
+  mut session_req: web::Json<SessionRequest>,
+  http_req: web::HttpRequest,
   pool: web::Data<PgPool>,
-  config: web::Data<Config>,
 ) -> HubbitResult<HttpResponse> {
   let pool = PgPool::clone(&pool);
   let api_key_repo = ApiKeyRepository::new(pool.clone());
@@ -26,24 +31,36 @@ async fn update_sessions(
   let session_repo = SessionRepository::new(pool.clone());
   let user_session_repo = UserSessionRepository::new(pool);
 
+  let mac_addrs = &mut session_req.macs;
   for mac_addr in mac_addrs.iter_mut() {
     *mac_addr = mac_addr.to_uppercase();
   }
   mac_addrs.sort_unstable();
   mac_addrs.dedup();
 
-  let auth_header = match req.headers().get("Authorization") {
+  let auth_header = match http_req.headers().get("Authorization") {
     Some(auth_header) => auth_header,
-    _ => return Ok(HttpResponse::Unauthorized().finish()),
+    _ => {
+      return {
+        warn!("[Update sessions] Missing authorization header");
+        Ok(HttpResponse::Unauthorized().finish())
+      }
+    }
   };
 
   let bearer = match Bearer::parse(auth_header) {
     Ok(bearer) => bearer,
-    _ => return Ok(HttpResponse::Unauthorized().finish()),
+    _ => {
+      warn!("[Update sessions] Invalid bearer token");
+      return Ok(HttpResponse::Unauthorized().finish());
+    }
   };
-  api_key_repo.get_by_key(bearer.token()).await?;
+  if api_key_repo.get_by_key(bearer.token()).await.is_err() {
+    warn!("[Update sessions] Invalid api key");
+    return Ok(HttpResponse::Unauthorized().finish());
+  };
 
-  let devices = device_repo.get_by_addrs(&mac_addrs).await?;
+  let devices = device_repo.get_by_addrs(mac_addrs).await?;
 
   let mut user_ids = devices
     .iter()
@@ -52,16 +69,21 @@ async fn update_sessions(
   user_ids.sort_unstable();
   user_ids.dedup();
   user_session_repo
-    .update_sessions(&user_ids, config.session_lifetime_s)
-    .await?;
+    .update_sessions(&user_ids)
+    .await
+    .map_err(|e| {
+      warn!("[Update sessions] Could not update user sessions");
+      e
+    })?;
 
   let devices = devices
     .into_iter()
     .map(|device| (device.user_id, device.address))
     .collect::<Vec<_>>();
-  session_repo
-    .update_sessions(&devices, config.session_lifetime_s)
-    .await?;
+  session_repo.update_sessions(&devices).await.map_err(|e| {
+    warn!("[Update sessions] Could not update sessions");
+    e
+  })?;
 
   Ok(HttpResponse::Ok().finish())
 }

@@ -6,4 +6,4 @@
 
 `cargo sqlx migrate revert` to rollback migrations
 
-`cargo sqlx prepare` to allow for offline compilation, such as in CI. Basically outputs a json with db meta data.
+`cargo sqlx prepare -- --lib` to allow for offline compilation, such as in CI. Basically outputs a json with db meta data.
