@@ -17,6 +17,8 @@ use crate::{
 };
 
 use super::user::User;
+use crate::error::HubbitError;
+use sqlx::Error;
 
 #[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
 pub struct Stat {
@@ -151,10 +153,19 @@ impl StatsQuery {
     };
 
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats = stats_service.get_study_year(year).await.map_err(|e| {
-      error!("[Schema error] {:?}", e);
-      HubbitSchemaError::InternalError
-    })?;
+    let stats = match stats_service.get_study_year(year).await {
+      Ok(stats) => stats,
+      Err(HubbitError::SqlxError(Error::RowNotFound)) => {
+        return Ok(StatsStudyYearPayload {
+          stats: vec![],
+          year,
+        })
+      }
+      Err(e) => {
+        error!("[Schema error] {:?}", e);
+        return Err(HubbitSchemaError::InternalError);
+      }
+    };
 
     let previous_stats = if context
       .look_ahead()
@@ -191,13 +202,20 @@ impl StatsQuery {
     };
 
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats = stats_service
-      .get_study_period(year, period)
-      .await
-      .map_err(|e| {
+    let stats = match stats_service.get_study_period(year, period).await {
+      Ok(stats) => stats,
+      Err(HubbitError::SqlxError(Error::RowNotFound)) => {
+        return Ok(StatsStudyPeriodPayload {
+          stats: vec![],
+          year,
+          period,
+        })
+      }
+      Err(e) => {
         error!("[Schema error] {:?}", e);
-        HubbitSchemaError::InternalError
-      })?;
+        return Err(HubbitSchemaError::InternalError);
+      }
+    };
 
     let previous_stats = if context
       .look_ahead()
