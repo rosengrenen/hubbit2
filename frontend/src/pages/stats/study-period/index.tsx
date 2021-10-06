@@ -77,10 +77,10 @@ function getInputProps(context: GetServerSidePropsContext) {
   const yearString = context.query['year'];
   const periodString = context.query['period'];
   if (yearString) {
-    year = parseInt(yearString, 10);
+    year = parseInt(yearString.toString(), 10);
   }
 
-  const period = parseStudyPeriod(periodString);
+  const period = periodString ? parseStudyPeriod(periodString.toString()) : undefined;
 
   if (isNaN(year) || !period) {
     return {};

@@ -60,7 +60,7 @@ function getInputProps(context: GetServerSidePropsContext) {
   let year = NaN;
   const yearString = context.query['year'];
   if (yearString) {
-    year = parseInt(yearString, 10);
+    year = parseInt(yearString.toString(), 10);
   }
 
   if (isNaN(year)) {

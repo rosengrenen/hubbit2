@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { GetServerSideProps } from 'next';
 
 const Stats = () => null;
