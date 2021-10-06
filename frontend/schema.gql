@@ -33,9 +33,9 @@ type QueryRoot {
 	statsAlltime: [Stat!]!
 	statsStudyYear(input: StatsStudyYearInput): StatsStudyYearPayload!
 	statsStudyPeriod(input: StatsStudyPeriodInput): StatsStudyPeriodPayload!
-	statsMonth(input: StatsMonthInput!): [Stat!]!
-	statsWeek(input: StatsWeekInput!): [Stat!]!
-	statsDay(input: StatsDayInput!): [Stat!]!
+	statsMonth(input: StatsMonthInput): StatsMonthPayload!
+	statsWeek(input: StatsWeekInput): StatsWeekPayload!
+	statsDay(input: StatsDayInput): StatsDayPayload!
 	me: User!
 	user(input: UserUniqueInput!): User!
 }
@@ -57,9 +57,21 @@ input StatsDayInput {
 	month: Int!
 	day: Int!
 }
+type StatsDayPayload {
+	stats: [Stat!]!
+	curr: YearMonthDay!
+	next: YearMonthDay!
+	prev: YearMonthDay!
+}
 input StatsMonthInput {
 	year: Int!
 	month: Int!
+}
+type StatsMonthPayload {
+	stats: [Stat!]!
+	curr: YearMonth!
+	next: YearMonth!
+	prev: YearMonth!
 }
 input StatsStudyPeriodInput {
 	year: Int!
@@ -80,6 +92,12 @@ type StatsStudyYearPayload {
 input StatsWeekInput {
 	year: Int!
 	week: Int!
+}
+type StatsWeekPayload {
+	stats: [Stat!]!
+	curr: YearWeek!
+	next: YearWeek!
+	prev: YearWeek!
 }
 type SubscriptionRoot {
 	userJoin: ActiveSession!
@@ -103,6 +121,19 @@ type User {
 input UserUniqueInput {
 	id: UUID
 	cid: String
+}
+type YearMonth {
+	year: Int!
+	month: Int!
+}
+type YearMonthDay {
+	year: Int!
+	month: Int!
+	day: Int!
+}
+type YearWeek {
+	year: Int!
+	week: Int!
 }
 schema {
 	query: QueryRoot
