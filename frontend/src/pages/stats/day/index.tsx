@@ -4,16 +4,16 @@ import { gql } from '@urql/core';
 import { GetServerSidePropsContext, NextPage } from 'next';
 import { useRouter } from 'next/router';
 
-import { StatsMonthQuery } from '../../../__generated__/graphql';
+import { StatsDayQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
-import { MONTH, StatsNavigation } from '../../../components/stats-navigation/StatsNavigation';
+import { DAY, StatsNavigation } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
 import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
 
-const STATS_MONTH_QUERY = gql`
-    query StatsMonth($input: StatsMonthInput) {
-        statsMonth(input: $input) {
+const STATS_DAY_QUERY = gql`
+    query StatsDay($input: StatsDayInput) {
+        statsDay(input: $input) {
             stats {
                 ...StatsTable
             }
@@ -21,14 +21,17 @@ const STATS_MONTH_QUERY = gql`
             curr {
                 year
                 month
+                day
             }
             next {
                 year
                 month
+                day
             }
             prev {
                 year
                 month
+                day
             }
         }
 
@@ -40,7 +43,7 @@ const STATS_MONTH_QUERY = gql`
     }
 `;
 
-const StatsMonth: NextPage<PageProps<StatsMonthQuery>> = ({ data }) => {
+const StatsDay: NextPage<PageProps<StatsDayQuery>> = ({ data }) => {
   const router = useRouter();
 
   if (!data) {
@@ -51,21 +54,20 @@ const StatsMonth: NextPage<PageProps<StatsMonthQuery>> = ({ data }) => {
 
   return (
     <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={MONTH} />
+      <StatsNavigation activeFrame={DAY} />
       <StatsTimespanSelect
-        // TODO(Vidarm): Show date-span here when implemented in BE.
-        current={`${new Date(data.statsMonth.curr.year, data.statsMonth.curr.month, 0, 0, 0).toLocaleString('default', {
-          month: 'long',
-        })} ${data.statsMonth.curr.year}`}
-        prev={`${path}?year=${data.statsMonth.prev.year}&month=${data.statsMonth.prev.month}`}
-        next={`${path}?year=${data.statsMonth.next.year}&month=${data.statsMonth.next.month}`}
+        current={`${data.statsDay.curr.year}-${data.statsDay.curr.month
+          .toString()
+          .padStart(2, '0')}-${data.statsDay.curr.day.toString().padStart(2, '0')}`}
+        prev={`${path}?year=${data.statsDay.prev.year}&month=${data.statsDay.prev.month}&day=${data.statsDay.prev.day}`}
+        next={`${path}?year=${data.statsDay.next.year}&month=${data.statsDay.next.month}&day=${data.statsDay.next.day}`}
       />
-      <StatsTable stats={data.statsMonth.stats} myCid={data.me.cid} />
+      <StatsTable stats={data.statsDay.stats} myCid={data.me.cid} />
     </div>
   );
 };
 
-export default StatsMonth;
+export default StatsDay;
 
 function getInputProps(context: GetServerSidePropsContext) {
   let year = NaN;
@@ -80,7 +82,13 @@ function getInputProps(context: GetServerSidePropsContext) {
     month = parseInt(monthString.toString(), 10);
   }
 
-  if (isNaN(year) || isNaN(month)) {
+  let day = NaN;
+  const dayString = context.query['day'];
+  if (dayString) {
+    day = parseInt(dayString.toString(), 10);
+  }
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
     return {};
   }
 
@@ -88,11 +96,12 @@ function getInputProps(context: GetServerSidePropsContext) {
     input: {
       year: year,
       month: month,
+      day: day,
     },
   };
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsMonthQuery>(
-  STATS_MONTH_QUERY,
+export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsDayQuery>(
+  STATS_DAY_QUERY,
   getInputProps,
 );
