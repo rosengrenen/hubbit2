@@ -3,12 +3,15 @@ import React from 'react';
 import { gql } from '@urql/core';
 import Link from 'next/link';
 
-import { StatsTableFragment } from '../../__generated__/graphql';
+import { Maybe, StatsTableFragment } from '../../__generated__/graphql';
 import { formatNick } from '../../util';
+
+import styles from './StatsTable.module.scss';
 
 interface Props {
   stats: StatsTableFragment[];
   myCid: string;
+  hideChange?: boolean;
 }
 
 export const STATS_TABLE_FRAGMENT = gql`
@@ -23,13 +26,13 @@ export const STATS_TABLE_FRAGMENT = gql`
   }
 `;
 
-const StatsTable = ({ stats, myCid }: Props) => (
+const StatsTable = ({ stats, myCid, hideChange = false }: Props) => (
   <div>
     <a href={`#${myCid}`}>Find me!</a>
     <table className={'data-table card-shadow'}>
       <thead>
         <tr className={'header-row'}>
-          <th>Change</th>
+          {!hideChange && <th>Change</th>}
           <th className={'position-column'}>#</th>
           <th className={'name-column'}>Name</th>
           <th>Total time</th>
@@ -45,7 +48,16 @@ const StatsTable = ({ stats, myCid }: Props) => (
               id={stat.user.cid}
               className={`data-table-row ${stat.user.cid === myCid ? 'active-row' : ''}`}
             >
-              <td>🐧</td>
+              {!hideChange && (
+                <td>
+                  <img
+                    title={getChangeTitle(stat.currentPosition, stat.prevPosition)}
+                    src={getChangeImageName(stat.currentPosition, stat.prevPosition)}
+                    alt={'position change icon'}
+                    className={styles.changeIcon}
+                  />
+                </td>
+              )}
               <td className={'position-column'}>{index + 1}</td>
               <td className={'name-column'}>
                 <Link href={`/user/${stat.user.cid}`}>
@@ -60,6 +72,36 @@ const StatsTable = ({ stats, myCid }: Props) => (
     </table>
   </div>
 );
+
+function getChangeTitle(currPosition: number, prevPosition: Maybe<number> | undefined): string {
+  if (!prevPosition) {
+    return 'No data from previous period';
+  }
+
+  const change = prevPosition - currPosition;
+
+  if (change === 0) {
+    return 'Unchanged from previous period';
+  }
+
+  return `${change > 0 ? 'Up' : 'Down'} ${Math.abs(change)} steps from ${prevPosition}`;
+}
+
+function getChangeImageName(currPosition: number, prevPosition: Maybe<number> | undefined): string {
+  if (!prevPosition) {
+    return '/up-arrow.svg';
+  }
+
+  const change = prevPosition - currPosition;
+
+  if (change > 0) {
+    return '/up-arrow.svg';
+  }
+  if (change < 0) {
+    return '/down-arrow.svg';
+  }
+  return '/dash.svg';
+}
 
 function convertSecondsToString(totalSeconds: number): string {
   const seconds = totalSeconds % 60;
