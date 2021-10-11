@@ -45,7 +45,7 @@ const StudyYear: NextPage<PageProps<StatsStudyYearQuery>> = ({ data }) => {
       <StatsNavigation activeFrame={STUDY_YEAR} />
       <StatsTimespanSelect
         // TODO(Vidarm): Show date-span here when implemented in BE.
-        current={`HT${currYear.toString().substring(2, 4)}/VT${nextYear.toString().substring(2, 4)}`}
+        current={`${currYear.toString().substring(2, 4)}/${nextYear.toString().substring(2, 4)}`}
         prev={`${path}?year=${prevYear}`}
         next={`${path}?year=${nextYear}`}
       />
