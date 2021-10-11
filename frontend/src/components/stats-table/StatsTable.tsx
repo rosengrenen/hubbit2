@@ -29,8 +29,8 @@ const StatsTable = ({ stats, myCid }: Props) => (
       <thead>
         <tr className={'header-row'}>
           <th>Change</th>
-          <th>#</th>
-          <th>Name</th>
+          <th className={'position-column'}>#</th>
+          <th className={'name-column'}>Name</th>
           <th>Total time</th>
         </tr>
       </thead>
@@ -45,8 +45,8 @@ const StatsTable = ({ stats, myCid }: Props) => (
               className={`data-table-row ${stat.user.cid === myCid ? 'active-row' : ''}`}
             >
               <td>🐧</td>
-              <td>{index + 1}</td>
-              <td>
+              <td className={'position-column'}>{index + 1}</td>
+              <td className={'name-column'}>
                 <a>{nick}</a>
               </td>
               <td>{convertSecondsToString(stat.durationSeconds)}</td>

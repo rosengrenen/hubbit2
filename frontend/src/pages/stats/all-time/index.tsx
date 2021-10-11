@@ -4,6 +4,7 @@ import { gql } from '@urql/core';
 import { NextPage } from 'next';
 
 import { StatsAlltimeQuery } from '../../../__generated__/graphql';
+import Error from '../../../components/error/Error';
 import { ALL_TIME, StatsNavigation } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { defaultGetServerSideProps, PageProps } from '../../../util';
@@ -23,7 +24,7 @@ const STATS_ALL_TIME_QUERY = gql`
 
 const AllTime: NextPage<PageProps<StatsAlltimeQuery>> = ({ data }) => {
   if (!data) {
-    return null;
+    return <Error />;
   }
 
   return (
