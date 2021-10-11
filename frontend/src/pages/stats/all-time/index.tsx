@@ -30,7 +30,7 @@ const AllTime: NextPage<PageProps<StatsAlltimeQuery>> = ({ data }) => {
   return (
     <div className={'statsWrapper'}>
       <StatsNavigation activeFrame={ALL_TIME} />
-      <StatsTable stats={data.statsAlltime} myCid={data.me.cid} />
+      <StatsTable stats={data.statsAlltime} myCid={data.me.cid} hideChange={true} />
     </div>
   );
 };
