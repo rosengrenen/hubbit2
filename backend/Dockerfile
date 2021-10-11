@@ -30,7 +30,7 @@ RUN strip_cargo_version
 FROM base as build
 
 # Create a dummy binary for pre-compiling dependencies (for caching)
-RUN cargo init .
+RUN cargo init . && mkdir -p ./src/bin && mv ./src/main.rs ./src/bin/server.rs
 COPY --from=strip-version /app/Cargo.* ./
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
@@ -39,7 +39,7 @@ COPY . .
 
 # Compile the final binary
 RUN SQLX_OFFLINE=true cargo build --release --target x86_64-unknown-linux-musl
-RUN strip target/x86_64-unknown-linux-musl/release/backend
+RUN strip target/x86_64-unknown-linux-musl/release/server
 
 ########################
 ### PRODUCTION STAGE ###
@@ -51,6 +51,6 @@ ENV PORT=8080
 EXPOSE 8080
 
 COPY migrations ./
-COPY --from=build /app/target/x86_64-unknown-linux-musl/release/backend ./hubbit
+COPY --from=build /app/target/x86_64-unknown-linux-musl/release/server ./hubbit
 
 CMD ["./hubbit"]
