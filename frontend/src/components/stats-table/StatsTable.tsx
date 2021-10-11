@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { gql } from '@urql/core';
+import Link from 'next/link';
 
 import { StatsTableFragment } from '../../__generated__/graphql';
 import { formatNick } from '../../util';
@@ -47,7 +48,9 @@ const StatsTable = ({ stats, myCid }: Props) => (
               <td>🐧</td>
               <td className={'position-column'}>{index + 1}</td>
               <td className={'name-column'}>
-                <a>{nick}</a>
+                <Link href={`/user/${stat.user.cid}`}>
+                  <a>{nick}</a>
+                </Link>
               </td>
               <td>{convertSecondsToString(stat.durationSeconds)}</td>
             </tr>
