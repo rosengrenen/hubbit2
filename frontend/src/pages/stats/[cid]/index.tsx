@@ -11,10 +11,6 @@ import styles from './index.module.scss';
 
 const USER_STATS_QUERY = gql`
   query UserStats($input: UserUniqueInput!) {
-    me {
-      cid
-      nick
-    }
     user(input: $input) {
       longestSession {
         startTime
@@ -26,6 +22,12 @@ const USER_STATS_QUERY = gql`
       }
       hourStats
       cid
+      nick
+      totalTimeSeconds
+      longestSession {
+        startTime
+        endTime
+      }
     }
   }
 `;
@@ -45,10 +47,8 @@ const UserStats: NextPage<PageProps<UserStatsQuery>> = ({ data }) => {
 
   return (
     <div className={styles.showSection}>
-      <h1>{data.me.nick}</h1>
-      <div className={styles.showSectionF}>
-        <UserStatsCards userStats={data.user} />
-      </div>
+      <h1>{data.user.nick}</h1>
+      <UserStatsCards userStats={data.user} />
     </div>
   );
 };

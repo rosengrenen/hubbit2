@@ -36,4 +36,3 @@ const StudyYear: NextPage<PageProps<StatsStudyYear>> = ({ data }) => {
 export default StatsStudyYearQuery;
 
 export const getServerSideProps = defaultGetServerSideProps<StatsAlltimeQuery>(STATS_ALL_TIME_QUERY);
-rom 'react';
