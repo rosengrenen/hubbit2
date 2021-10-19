@@ -1,6 +1,7 @@
 import '../global-styles/styles.scss';
 import '../global-styles/tables.scss';
 import '../global-styles/groups.scss';
+import '../global-styles/roboto-font.css';
 
 import React from 'react';
 

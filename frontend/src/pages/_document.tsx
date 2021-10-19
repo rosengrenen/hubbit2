@@ -6,14 +6,7 @@ class HubbitDocument extends Document {
   render() {
     return (
       <Html>
-        <Head>
-          <link
-            rel="stylesheet"
-            media="all"
-            href="https://fonts.googleapis.com/css?family=Roboto:200,400,500,300,700"
-            data-turbolinks-track="true"
-          />
-        </Head>
+        <Head />
         <body>
           <Main />
           <NextScript />

@@ -9,7 +9,7 @@ h1 {
   line-height: 1.35;
   letter-spacing: -0.02em;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-weight: 200;
+  font-weight: 400;
   color: #293133;
 }
 
@@ -30,6 +30,7 @@ header {
     font-size: 52px;
     line-height: 1.35;
     letter-spacing: -0.02em;
+    font-weight: 300;
 
     .title-link {
       @media screen and (max-width: 580px) {
