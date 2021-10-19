@@ -74,7 +74,7 @@ export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables ext
 
     return {
       props: {
-        data,
+        data: data ? data : null,
       },
       redirect,
     };
