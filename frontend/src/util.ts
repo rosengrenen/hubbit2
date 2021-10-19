@@ -48,7 +48,7 @@ export const authRedirect = (path: string): Redirect => ({
 });
 
 export interface PageProps<T> {
-  data?: T;
+  data: T | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
