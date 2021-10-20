@@ -150,6 +150,10 @@ fn last_day_of_month(year: i32, month: u32) -> u32 {
 }
 
 fn leading_days(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32, u32)> {
+  if start_date > end_date {
+    return Vec::new();
+  }
+
   let start_year = start_date.year();
   let start_month = start_date.month();
   if start_year == end_date.year() && start_month == end_date.month() {
@@ -175,6 +179,10 @@ fn leading_days(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32, u3
 }
 
 fn leading_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)> {
+  if start_date > end_date {
+    return Vec::new();
+  }
+
   let start_year = start_date.year();
   let start_month = start_date.month();
   if start_year == end_date.year() {
@@ -215,6 +223,10 @@ fn leading_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)>
 }
 
 fn middle_years(start_date: NaiveDate, end_date: NaiveDate) -> Vec<i32> {
+  if start_date > end_date {
+    return Vec::new();
+  }
+
   let start_year = if start_date.month() == 1 && start_date.day() == 1 {
     start_date.year()
   } else {
@@ -230,6 +242,10 @@ fn middle_years(start_date: NaiveDate, end_date: NaiveDate) -> Vec<i32> {
 }
 
 fn trailing_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)> {
+  if start_date > end_date {
+    return Vec::new();
+  }
+
   let end_year = end_date.year();
   if end_year > start_date.year() {
     (1..end_date.month())
@@ -241,6 +257,10 @@ fn trailing_months(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32)
 }
 
 fn trailing_days(start_date: NaiveDate, end_date: NaiveDate) -> Vec<(i32, u32, u32)> {
+  if start_date > end_date {
+    return Vec::new();
+  }
+
   let end_year = end_date.year();
   let end_month = end_date.month();
   let last_day_of_month = last_day_of_month(end_year, end_month);
