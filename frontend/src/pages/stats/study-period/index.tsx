@@ -2,6 +2,7 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { GetServerSidePropsContext, NextPage } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { Period, StatsStudyPeriodQuery } from '../../../__generated__/graphql';
@@ -12,7 +13,7 @@ import StatsTable, {
   STATS_TABLE_STAT_FRAGMENT,
 } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_PERIOD_QUERY = gql`
   query StatsStudyPeriod($input: StatsStudyPeriodInput) {
@@ -41,13 +42,11 @@ const SUMMER = 'SUMMER';
 const ALL_PERIODS = [Period.Summer, Period.Lp1, Period.Lp2, Period.Lp3, Period.Lp4];
 
 const StudyPeriod: NextPage<PageProps<StatsStudyPeriodQuery>> = ({ data }) => {
-  const router = useRouter();
+  const { pathname: path } = useRouter();
 
   if (!data) {
     return <Error />;
   }
-
-  const path = router.pathname;
 
   const currPeriod = data.statsStudyPeriod.period;
   const periodIndex = ALL_PERIODS.indexOf(currPeriod);
@@ -60,16 +59,27 @@ const StudyPeriod: NextPage<PageProps<StatsStudyPeriodQuery>> = ({ data }) => {
   const nextYear = nextPeriod === Period.Summer ? currYear + 1 : currYear;
 
   return (
-    <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={STUDY_PERIOD} />
-      <StatsTimespanSelect
-        // TODO(Vidarm): Show date-span here when implemented in BE.
-        current={`${currPeriod} ${formatYear(currYear)}/${formatYear(currYear + 1)}`}
-        prev={`${path}?year=${prevYear}&period=${prevPeriod.toUpperCase()}`}
-        next={`${path}?year=${nextYear}&period=${nextPeriod.toUpperCase()}`}
-      />
-      <StatsTable stats={data.statsStudyPeriod.stats} me={data.me} />
-    </div>
+    <>
+      <Head>
+        <title>
+          {createTitle(
+            `Stats for ${data.statsStudyPeriod.period} of study year ${formatYear(currYear)}/${formatYear(
+              currYear + 1,
+            )}`,
+          )}
+        </title>
+      </Head>
+      <div className={'statsWrapper'}>
+        <StatsNavigation activeFrame={STUDY_PERIOD} />
+        <StatsTimespanSelect
+          // TODO(Vidarm): Show date-span here when implemented in BE.
+          current={`${currPeriod} ${formatYear(currYear)}/${formatYear(currYear + 1)}`}
+          prev={`${path}?year=${prevYear}&period=${prevPeriod.toUpperCase()}`}
+          next={`${path}?year=${nextYear}&period=${nextPeriod.toUpperCase()}`}
+        />
+        <StatsTable stats={data.statsStudyPeriod.stats} me={data.me} />
+      </div>
+    </>
   );
 };
 

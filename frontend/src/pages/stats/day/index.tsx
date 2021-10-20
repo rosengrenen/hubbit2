@@ -2,6 +2,7 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { GetServerSidePropsContext, NextPage } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { StatsDayQuery } from '../../../__generated__/graphql';
@@ -12,7 +13,7 @@ import StatsTable, {
   STATS_TABLE_STAT_FRAGMENT,
 } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_DAY_QUERY = gql`
   query StatsDay($input: StatsDayInput) {
@@ -46,26 +47,36 @@ const STATS_DAY_QUERY = gql`
 `;
 
 const StatsDay: NextPage<PageProps<StatsDayQuery>> = ({ data }) => {
-  const router = useRouter();
+  const { pathname: path } = useRouter();
 
   if (!data) {
     return <Error />;
   }
 
-  const path = router.pathname;
+  const date = new Date(data.statsDay.curr.year, data.statsDay.curr.month, data.statsDay.curr.day);
+  const formattedDate = date.toLocaleString('default', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={DAY} />
-      <StatsTimespanSelect
-        current={`${data.statsDay.curr.year}-${data.statsDay.curr.month
-          .toString()
-          .padStart(2, '0')}-${data.statsDay.curr.day.toString().padStart(2, '0')}`}
-        prev={`${path}?year=${data.statsDay.prev.year}&month=${data.statsDay.prev.month}&day=${data.statsDay.prev.day}`}
-        next={`${path}?year=${data.statsDay.next.year}&month=${data.statsDay.next.month}&day=${data.statsDay.next.day}`}
-      />
-      <StatsTable stats={data.statsDay.stats} me={data.me} />
-    </div>
+    <>
+      <Head>
+        <title>{createTitle(`Stats for ${formattedDate}`)}</title>
+      </Head>
+      <div className={'statsWrapper'}>
+        <StatsNavigation activeFrame={DAY} />
+        <StatsTimespanSelect
+          current={`${data.statsDay.curr.year}-${data.statsDay.curr.month
+            .toString()
+            .padStart(2, '0')}-${data.statsDay.curr.day.toString().padStart(2, '0')}`}
+          prev={`${path}?year=${data.statsDay.prev.year}&month=${data.statsDay.prev.month}&day=${data.statsDay.prev.day}`}
+          next={`${path}?year=${data.statsDay.next.year}&month=${data.statsDay.next.month}&day=${data.statsDay.next.day}`}
+        />
+        <StatsTable stats={data.statsDay.stats} me={data.me} />
+      </div>
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { gql } from '@urql/core';
 import { NextPage } from 'next';
+import Head from 'next/head';
 import { useSubscription } from 'urql';
 
 import {
@@ -13,7 +14,7 @@ import {
 import ActiveGroupList, { ACTIVE_GROUP_FRAGMENT } from '../components/active-group-list/ActiveGroupsList';
 import ActiveUserList, { ACTIVE_USER_FRAGMENT } from '../components/active-users-list/ActiveUserList';
 import Error from '../components/error/Error';
-import { defaultGetServerSideProps, PageProps } from '../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../util';
 
 import styles from './index.module.scss';
 
@@ -88,10 +89,15 @@ const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
   }
 
   return (
-    <div className={styles.sessionsContainer}>
-      <ActiveUserList sessions={sessions} />
-      <ActiveGroupList sessions={sessions} />
-    </div>
+    <>
+      <Head>
+        <title>{createTitle('Who is in the Hubb?')}</title>
+      </Head>
+      <div className={styles.sessionsContainer}>
+        <ActiveUserList sessions={sessions} />
+        <ActiveGroupList sessions={sessions} />
+      </div>
+    </>
   );
 };
 

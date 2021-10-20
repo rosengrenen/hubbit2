@@ -2,6 +2,7 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { GetServerSidePropsContext, NextPage } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { StatsStudyYearQuery } from '../../../__generated__/graphql';
@@ -12,7 +13,7 @@ import StatsTable, {
   STATS_TABLE_STAT_FRAGMENT,
 } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_YEAR_QUERY = gql`
   query StatsStudyYear($input: StatsStudyYearInput) {
@@ -33,28 +34,36 @@ const STATS_STUDY_YEAR_QUERY = gql`
 `;
 
 const StudyYear: NextPage<PageProps<StatsStudyYearQuery>> = ({ data }) => {
-  const router = useRouter();
+  const { pathname: path } = useRouter();
 
   if (!data) {
     return <Error />;
   }
 
-  const path = router.pathname;
   const currYear = data.statsStudyYear.year;
   const prevYear = currYear - 1;
   const nextYear = currYear + 1;
 
   return (
-    <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={STUDY_YEAR} />
-      <StatsTimespanSelect
-        // TODO(Vidarm): Show date-span here when implemented in BE.
-        current={`${currYear.toString().substring(2, 4)}/${nextYear.toString().substring(2, 4)}`}
-        prev={`${path}?year=${prevYear}`}
-        next={`${path}?year=${nextYear}`}
-      />
-      <StatsTable stats={data.statsStudyYear.stats} me={data.me} />
-    </div>
+    <>
+      <Head>
+        <title>
+          {createTitle(
+            `Stats for study year ${currYear.toString().substring(2, 4)}/${nextYear.toString().substring(2, 4)}`,
+          )}
+        </title>
+      </Head>
+      <div className={'statsWrapper'}>
+        <StatsNavigation activeFrame={STUDY_YEAR} />
+        <StatsTimespanSelect
+          // TODO(Vidarm): Show date-span here when implemented in BE.
+          current={`${currYear.toString().substring(2, 4)}/${nextYear.toString().substring(2, 4)}`}
+          prev={`${path}?year=${prevYear}`}
+          next={`${path}?year=${nextYear}`}
+        />
+        <StatsTable stats={data.statsStudyYear.stats} me={data.me} />
+      </div>
+    </>
   );
 };
 
