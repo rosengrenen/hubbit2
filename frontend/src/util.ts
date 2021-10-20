@@ -84,8 +84,6 @@ export const defaultGetServerSideProps = <
         case GqlError.NOT_LOGGED_IN:
           redirect = authRedirect(context.resolvedUrl);
           break;
-        default:
-          throw error;
       }
     }
 
@@ -98,4 +96,28 @@ export const defaultGetServerSideProps = <
   };
 
   return getServerSideProps;
+};
+
+export const formatNick = (cid: string, nick: string) => {
+  switch (cid) {
+    // DON'T QUESTION THIS!
+    case 'mvidar':
+      return `✌ ${nick} ✌`;
+    case 'rasros':
+      return `🌹 ${nick} 🌹`;
+    case 'dahida':
+      return `💤 ${nick} 💤`;
+    case 'hulthe':
+      return `🎩${nick}🪄`;
+    case 'jenhallb':
+      return `❤ ${nick} ❤`;
+    case 'erijohns':
+      return `🍔${nick}🦙`;
+    case 'caeric':
+      return `Loppan :dab:`;
+    case 'lahtig':
+      return `🥛(☕)🥛 ${nick}`;
+    default:
+      return nick;
+  }
 };

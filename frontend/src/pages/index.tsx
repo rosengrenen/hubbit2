@@ -6,6 +6,7 @@ import { NextPage } from 'next';
 import { CurrentSessionsQuery } from '../__generated__/graphql';
 import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
 import ActiveUsersList from '../components/active-users-list/ActiveUsersList';
+import Error from '../components/error/Error';
 import { defaultGetServerSideProps, PageProps } from '../util';
 
 import styles from './index.module.scss';
@@ -15,6 +16,7 @@ const CURRENT_SESSIONS_QUERY = gql`
     currentSessions {
       user {
         id
+        cid
         nick
         avatarUrl
         groups
@@ -26,7 +28,7 @@ const CURRENT_SESSIONS_QUERY = gql`
 
 const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
   if (!data) {
-    return null;
+    return <Error />;
   }
 
   return (

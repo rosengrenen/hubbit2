@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use async_graphql::{guard::Guard, Context, InputObject, Object, SimpleObject};
-use chrono::{Datelike, Duration, Local, TimeZone};
+use chrono::{Datelike, Duration, TimeZone, Utc, Weekday};
 use log::error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -17,6 +17,8 @@ use crate::{
 };
 
 use super::user::User;
+use crate::error::HubbitError;
+use sqlx::Error;
 
 #[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
 pub struct Stat {
@@ -69,6 +71,49 @@ pub struct StatsStudyPeriodPayload {
   period: Period,
 }
 
+#[derive(SimpleObject)]
+struct YearMonth {
+  year: i32,
+  month: i32,
+}
+
+#[derive(SimpleObject)]
+pub struct StatsMonthPayload {
+  stats: Vec<Stat>,
+  curr: YearMonth,
+  next: YearMonth,
+  prev: YearMonth,
+}
+
+#[derive(SimpleObject)]
+struct YearWeek {
+  year: i32,
+  week: i32,
+}
+
+#[derive(SimpleObject)]
+pub struct StatsWeekPayload {
+  stats: Vec<Stat>,
+  curr: YearWeek,
+  next: YearWeek,
+  prev: YearWeek,
+}
+
+#[derive(SimpleObject)]
+pub struct YearMonthDay {
+  year: i32,
+  month: i32,
+  day: i32,
+}
+
+#[derive(SimpleObject)]
+pub struct StatsDayPayload {
+  stats: Vec<Stat>,
+  curr: YearMonthDay,
+  next: YearMonthDay,
+  prev: YearMonthDay,
+}
+
 #[derive(Default)]
 pub struct StatsQuery;
 
@@ -108,10 +153,19 @@ impl StatsQuery {
     };
 
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats = stats_service.get_study_year(year).await.map_err(|e| {
-      error!("[Schema error] {:?}", e);
-      HubbitSchemaError::InternalError
-    })?;
+    let stats = match stats_service.get_study_year(year).await {
+      Ok(stats) => stats,
+      Err(HubbitError::SqlxError(Error::RowNotFound)) => {
+        return Ok(StatsStudyYearPayload {
+          stats: vec![],
+          year,
+        })
+      }
+      Err(e) => {
+        error!("[Schema error] {:?}", e);
+        return Err(HubbitSchemaError::InternalError);
+      }
+    };
 
     let previous_stats = if context
       .look_ahead()
@@ -148,13 +202,20 @@ impl StatsQuery {
     };
 
     let stats_service = context.data_unchecked::<StatsService>();
-    let stats = stats_service
-      .get_study_period(year, period)
-      .await
-      .map_err(|e| {
+    let stats = match stats_service.get_study_period(year, period).await {
+      Ok(stats) => stats,
+      Err(HubbitError::SqlxError(Error::RowNotFound)) => {
+        return Ok(StatsStudyPeriodPayload {
+          stats: vec![],
+          year,
+          period,
+        })
+      }
+      Err(e) => {
         error!("[Schema error] {:?}", e);
-        HubbitSchemaError::InternalError
-      })?;
+        return Err(HubbitSchemaError::InternalError);
+      }
+    };
 
     let previous_stats = if context
       .look_ahead()
@@ -191,22 +252,35 @@ impl StatsQuery {
   pub async fn stats_month(
     &self,
     context: &Context<'_>,
-    input: StatsMonthInput,
-  ) -> HubbitSchemaResult<Vec<Stat>> {
+    input: Option<StatsMonthInput>,
+  ) -> HubbitSchemaResult<StatsMonthPayload> {
+    let (year, month) = if let Some(input) = input {
+      (input.year, input.month)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.month0() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_month(input.year, input.month as u32)
+      .get_month(year, month as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
         HubbitSchemaError::InternalError
       })?;
 
+    let (prev_year, prev_month) = match month {
+      1 => (year - 1, 12),
+      _ => (year, month - 1),
+    };
+
+    let (next_year, next_month) = match month {
+      12 => (year + 1, 1),
+      _ => (year, month + 1),
+    };
+
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
-      let (prev_year, prev_month) = match input.month {
-        1 => (input.year - 1, 12),
-        _ => (input.year, input.month - 1),
-      };
       stats_service
         .get_month(prev_year, prev_month as u32)
         .await
@@ -217,31 +291,50 @@ impl StatsQuery {
 
     prefetch_users(context, &stats).await?;
 
-    Ok(sort_and_map_stats(stats, &previous_stats))
+    let stats = sort_and_map_stats(stats, &previous_stats);
+    Ok(StatsMonthPayload {
+      stats,
+      curr: YearMonth { year, month },
+      next: YearMonth {
+        year: next_year,
+        month: next_month,
+      },
+      prev: YearMonth {
+        year: prev_year,
+        month: prev_month,
+      },
+    })
   }
 
   #[graphql(guard(AuthGuard()))]
   pub async fn stats_week(
     &self,
     context: &Context<'_>,
-    input: StatsWeekInput,
-  ) -> HubbitSchemaResult<Vec<Stat>> {
+    input: Option<StatsWeekInput>,
+  ) -> HubbitSchemaResult<StatsWeekPayload> {
+    let (year, week) = if let Some(input) = input {
+      (input.year, input.week)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.iso_week().week() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_week(input.year, input.week as u32)
+      .get_week(year, week as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
         HubbitSchemaError::InternalError
       })?;
 
+    let curr_week = Utc.isoywd(year, week as u32, Weekday::Mon);
+    let prev_week = curr_week.to_owned() - Duration::weeks(1);
+    let next_week = curr_week + Duration::weeks(1);
+
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
-      let (prev_year, prev_week) = match input.week {
-        1 => (input.year - 1, 52),
-        _ => (input.year, input.week - 1),
-      };
       stats_service
-        .get_week(prev_year, prev_week as u32)
+        .get_week(prev_week.year(), prev_week.iso_week().week() as u32)
         .await
         .ok()
     } else {
@@ -250,27 +343,48 @@ impl StatsQuery {
 
     prefetch_users(context, &stats).await?;
 
-    Ok(sort_and_map_stats(stats, &previous_stats))
+    let stats = sort_and_map_stats(stats, &previous_stats);
+    Ok(StatsWeekPayload {
+      stats,
+      curr: YearWeek { year, week },
+      next: YearWeek {
+        year: next_week.year(),
+        week: next_week.iso_week().week() as i32,
+      },
+      prev: YearWeek {
+        year: prev_week.year(),
+        week: prev_week.iso_week().week() as i32,
+      },
+    })
   }
 
   #[graphql(guard(AuthGuard()))]
   pub async fn stats_day(
     &self,
     context: &Context<'_>,
-    input: StatsDayInput,
-  ) -> HubbitSchemaResult<Vec<Stat>> {
+    input: Option<StatsDayInput>,
+  ) -> HubbitSchemaResult<StatsDayPayload> {
+    let (year, month, day) = if let Some(input) = input {
+      (input.year, input.month, input.day)
+    } else {
+      let now = Utc::now();
+      (now.year() as i32, now.month0() as i32, now.day0() as i32)
+    };
+
     let stats_service = context.data_unchecked::<StatsService>();
     let stats = stats_service
-      .get_day(input.year, input.month as u32, input.day as u32)
+      .get_day(year, month as u32, day as u32)
       .await
       .map_err(|e| {
         error!("[Schema error] {:?}", e);
         HubbitSchemaError::InternalError
       })?;
 
+    let curr_day = Utc.ymd(year, month as u32, day as u32);
+    let prev_day = curr_day - Duration::days(1);
+    let next_day = curr_day + Duration::days(1);
+
     let previous_stats = if context.look_ahead().field("prevPosition").exists() {
-      let prev_day =
-        Local.ymd(input.year, input.month as u32, input.day as u32) - Duration::days(1);
       stats_service
         .get_day(prev_day.year(), prev_day.month(), prev_day.day())
         .await
@@ -281,7 +395,21 @@ impl StatsQuery {
 
     prefetch_users(context, &stats).await?;
 
-    Ok(sort_and_map_stats(stats, &previous_stats))
+    let stats = sort_and_map_stats(stats, &previous_stats);
+    Ok(StatsDayPayload {
+      stats,
+      curr: YearMonthDay { year, month, day },
+      next: YearMonthDay {
+        year: next_day.year(),
+        month: next_day.month() as i32,
+        day: next_day.day() as i32,
+      },
+      prev: YearMonthDay {
+        year: prev_day.year(),
+        month: prev_day.month() as i32,
+        day: prev_day.day() as i32,
+      },
+    })
   }
 }
 

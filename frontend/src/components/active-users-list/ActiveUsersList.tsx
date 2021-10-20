@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { formatNick } from '../../util';
 
 import styles from './ActiveUsersList.module.scss';
 
@@ -29,7 +30,7 @@ const ActiveUsersList = ({ sessions }: props) => {
               return (
                 <tr key={session.user.nick} className={'data-table-row'}>
                   <td className={styles.userRow}>
-                    <a href={'google.com'}>{session.user.nick}</a>
+                    <a href={`/user/${session.user.cid}`}>{formatNick(session.user.cid, session.user.nick)}</a>
                   </td>
                   <td className={styles.timeCell}>
                     {formatTime(startTime)}

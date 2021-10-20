@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 import styles from '../../pages/stats/index.module.scss';
 
-export const ALL_TIME = 'all_time';
-export const STUDY_YEAR = 'study_year';
-export const STUDY_PERIOD = 'study_period';
+export const ALL_TIME = 'all-time';
+export const STUDY_YEAR = 'study-year';
+export const STUDY_PERIOD = 'study-period';
 export const MONTH = 'month';
 export const WEEK = 'week';
 export const DAY = 'day';
@@ -62,11 +62,4 @@ export const StatsNavigation = ({ activeFrame }: Props) => {
 
 function getLink(stat: StatsTab): string {
   return `/stats/${stat}`;
-}
-
-function getTimeFrameRef(pathName: string, timeFrame: string | string[]): string {
-  if (typeof timeFrame === 'string') {
-    return `${pathName}?timeframe=${timeFrame}`;
-  }
-  return pathName;
 }

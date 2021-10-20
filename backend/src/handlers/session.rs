@@ -60,7 +60,7 @@ async fn update_sessions(
     return Ok(HttpResponse::Unauthorized().finish());
   };
 
-  let devices = device_repo.get_by_addrs(&mac_addrs).await?;
+  let devices = device_repo.get_by_addrs(mac_addrs).await?;
 
   let mut user_ids = devices
     .iter()

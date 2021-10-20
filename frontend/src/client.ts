@@ -6,7 +6,7 @@ export const clientSideClient = createClient({
 
 export const serverSideClient = (headers: Record<string, string>) =>
   createClient({
-    url: 'http://localhost:8080/api/graphql',
+    url: `${process.env.BACKEND_ADDRESS}/api/graphql`,
     fetchOptions: {
       headers,
     },

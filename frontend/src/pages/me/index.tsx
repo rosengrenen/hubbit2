@@ -5,6 +5,7 @@ import { NextPage } from 'next';
 
 import { MeQuery } from '../../__generated__/graphql';
 import DeviceList, { DEVICE_FRAGMENT } from '../../components/device-list/DeviceList';
+import Error from '../../components/error/Error';
 import { defaultGetServerSideProps, PageProps } from '../../util';
 
 import styles from './index.module.scss';
@@ -25,7 +26,7 @@ const ME_QUERY = gql`
 
 const Index: NextPage<PageProps<MeQuery>> = ({ data }) => {
   if (!data) {
-    return null;
+    return <Error />;
   }
 
   return (

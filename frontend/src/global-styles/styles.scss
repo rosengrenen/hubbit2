@@ -1,27 +1,32 @@
-@import "/src/global-styles/vars";
+@import '/src/global-styles/vars';
 
-h1, h2, h3, h4, h5, h6 {
-  margin: 0
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
 }
 
 h1 {
   font-size: 52px;
   line-height: 1.35;
   letter-spacing: -0.02em;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
   font-weight: 200;
   color: #293133;
 }
 
 a {
   text-decoration: none;
-  color: #005C95;
+  color: #005c95;
 }
 
 body {
   font-family: $font-stack;
   margin: 0;
-  background-color: #F1F1F1;
+  background-color: #f1f1f1;
 }
 
 header {
@@ -39,7 +44,7 @@ header {
     }
     a {
       color: #000;
-      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
     }
   }
 
@@ -78,7 +83,7 @@ header {
 .card {
   background-color: white;
   border-radius: 4px;
-  box-shadow: 4px 4px 10px 0px #AAAAAA;
+  box-shadow: 4px 4px 10px 0px #aaaaaa;
   padding: 10px;
 }
 
@@ -120,4 +125,8 @@ ul {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+html {
+  scroll-behavior: smooth;
 }
