@@ -6,7 +6,9 @@ class HubbitDocument extends Document {
   render() {
     return (
       <Html>
-        <Head />
+        <Head>
+          <link rel="shortcut icon" type="image/svg" href="/hubbit_eye_logo.svg" />
+        </Head>
         <body>
           <Main />
           <NextScript />
