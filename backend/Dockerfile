@@ -3,6 +3,10 @@
 ##################
 FROM rust:1.54 as base
 
+ENV TZ=Europe/Stockholm
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y tzdata
+
 WORKDIR /app
 
 # Install required tools

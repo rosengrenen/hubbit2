@@ -4,7 +4,7 @@ ENV TZ=Europe/Stockholm
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y tzdata
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 RUN cargo install sqlx-cli cargo-watch
 

@@ -62,3 +62,23 @@ export function formatDate(date: Date): string {
     month: 'short',
   })} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 }
+
+export function prettyFromSeconds(seconds: number) {
+  let pretty = `${seconds % 60}s`;
+  if (seconds >= 60) {
+    const minutes = Math.floor(seconds / 60) % 60;
+    pretty = `${minutes}m ${pretty}`;
+  }
+
+  if (seconds >= 60 * 60) {
+    const hours = Math.floor(seconds / 60 / 60) % 24;
+    pretty = `${hours}h ${pretty}`;
+  }
+
+  if (seconds >= 60 * 60 * 24) {
+    const days = Math.floor(seconds / 60 / 60 / 24);
+    pretty = `${days}d ${pretty}`;
+  }
+
+  return pretty;
+}

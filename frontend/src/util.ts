@@ -1,6 +1,7 @@
-import { CombinedError } from '@urql/core';
+import { Client, CombinedError } from '@urql/core';
 import { DocumentNode } from 'graphql';
 import { GetServerSideProps, GetServerSidePropsContext, Redirect } from 'next';
+import { ParsedUrlQuery } from 'querystring';
 
 import { serverSideClient } from './client';
 
@@ -51,14 +52,28 @@ export interface PageProps<T> {
   data: T | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables extends object = {}>(
+export const defaultGetServerSideProps = <
+  Result,
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  Variables extends object = {},
+  Params extends ParsedUrlQuery = ParsedUrlQuery,
+>(
   query: DocumentNode,
-  inputCallback?: (context: GetServerSidePropsContext) => Variables,
+  inputCallback?: (context: GetServerSidePropsContext<Params>) => Variables,
+  preDataHook?: (params: Params, client: Client) => Promise<Redirect | void>,
 ) => {
-  const getServerSideProps: GetServerSideProps<PageProps<Result>> = async context => {
+  const getServerSideProps: GetServerSideProps<PageProps<Result>, Params> = async context => {
     const headers = rawHeadersToDict(context.req.rawHeaders);
     const client = serverSideClient(headers);
+
+    if (preDataHook) {
+      const redirect = await preDataHook(context.params as Params, client);
+      if (redirect) {
+        return {
+          redirect,
+        };
+      }
+    }
     const variables = (inputCallback && inputCallback(context)) || undefined;
 
     const { data, error } = await client.query<Result, Variables>(query, variables).toPromise();
@@ -69,6 +84,8 @@ export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables ext
         case GqlError.NOT_LOGGED_IN:
           redirect = authRedirect(context.resolvedUrl);
           break;
+        default:
+          console.log(error);
       }
     }
 
@@ -81,14 +98,6 @@ export const defaultGetServerSidePropsWithCallbackInput = <Result, Variables ext
   };
 
   return getServerSideProps;
-};
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const defaultGetServerSideProps = <Result, Variables extends object = {}>(
-  query: DocumentNode,
-  variables?: Variables,
-) => {
-  return defaultGetServerSidePropsWithCallbackInput(query, context => (variables ? variables : {}));
 };
 
 export const formatNick = (cid: string, nick: string) => {

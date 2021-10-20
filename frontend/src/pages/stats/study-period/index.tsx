@@ -7,26 +7,29 @@ import { useRouter } from 'next/router';
 import { Period, StatsStudyPeriodQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
 import { StatsNavigation, STUDY_PERIOD } from '../../../components/stats-navigation/StatsNavigation';
-import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
+import StatsTable, {
+  STATS_TABLE_ME_FRAGMENT,
+  STATS_TABLE_STAT_FRAGMENT,
+} from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
+import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_PERIOD_QUERY = gql`
-    query StatsStudyPeriod($input: StatsStudyPeriodInput) {
-        statsStudyPeriod(input: $input) {
-            stats {
-                ...StatsTable
-            }
-            period
-            year
-        }
-
-        me {
-            cid
-        }
-
-        ${STATS_TABLE_FRAGMENT}
+  query StatsStudyPeriod($input: StatsStudyPeriodInput) {
+    statsStudyPeriod(input: $input) {
+      stats {
+        ...StatsTableStat
+      }
+      period
+      year
     }
+    me {
+      ...StatsTableMe
+    }
+  }
+
+  ${STATS_TABLE_STAT_FRAGMENT}
+  ${STATS_TABLE_ME_FRAGMENT}
 `;
 
 const LP1 = 'LP1';
@@ -65,7 +68,7 @@ const StudyPeriod: NextPage<PageProps<StatsStudyPeriodQuery>> = ({ data }) => {
         prev={`${path}?year=${prevYear}&period=${prevPeriod.toUpperCase()}`}
         next={`${path}?year=${nextYear}&period=${nextPeriod.toUpperCase()}`}
       />
-      <StatsTable stats={data.statsStudyPeriod.stats} myCid={data.me.cid} />
+      <StatsTable stats={data.statsStudyPeriod.stats} me={data.me} />
     </div>
   );
 };
@@ -111,7 +114,7 @@ function parseStudyPeriod(studyPeriodString: string): Period | undefined {
   }
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsStudyPeriodQuery>(
+export const getServerSideProps = defaultGetServerSideProps<StatsStudyPeriodQuery>(
   STATS_STUDY_PERIOD_QUERY,
   getInputProps,
 );

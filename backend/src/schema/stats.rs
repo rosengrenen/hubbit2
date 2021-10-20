@@ -258,7 +258,7 @@ impl StatsQuery {
       (input.year, input.month)
     } else {
       let now = Utc::now();
-      (now.year() as i32, now.month0() as i32)
+      (now.year() as i32, now.month() as i32)
     };
 
     let stats_service = context.data_unchecked::<StatsService>();
@@ -368,7 +368,7 @@ impl StatsQuery {
       (input.year, input.month, input.day)
     } else {
       let now = Utc::now();
-      (now.year() as i32, now.month0() as i32, now.day0() as i32)
+      (now.year() as i32, now.month() as i32, now.day() as i32)
     };
 
     let stats_service = context.data_unchecked::<StatsService>();

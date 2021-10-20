@@ -8,7 +8,7 @@
 .infoContainer {
   background-color: #fff;
   border: none;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 3px 1px -2px rgba(0,0,0,0.2),0 1px 5px 0 rgba(0,0,0,0.12);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
   border-radius: 2px;
   overflow: hidden;
   flex-grow: 1;
@@ -21,11 +21,44 @@
 
 .infoHeader {
   color: #ffffff;
-  background-color: #00B3E6;
-  padding: 0.3rem;
+  background-color: #00b3e6;
+  padding: 0.5rem;
 }
 
 .infoText {
   height: 4em;
   padding: 0.4em;
+}
+
+.graph {
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-grow: 1;
+  margin-left: 1em;
+
+  &:first-child {
+    margin-left: 0;
+  }
+}
+
+.graphContainer {
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.graphHeader {
+  color: #ffffff;
+  background-color: #00b3e6;
+  padding: 0.5rem;
+}
+
+.graphContent {
+  padding: 10px 10px 10px 0;
 }
