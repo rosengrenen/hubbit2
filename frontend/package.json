@@ -26,6 +26,7 @@
     "@fortawesome/react-fontawesome": "^0.1.15",
     "express": "^4.17.1",
     "graphql": "^15.5.3",
+    "graphql-tag": "^2.12.5",
     "graphql-ws": "^5.5.1",
     "http-proxy-middleware": "^2.0.1",
     "next": "^11.1.2",

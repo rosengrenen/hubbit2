@@ -2,11 +2,12 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { NextPage } from 'next';
+import Head from 'next/head';
 
 import { MeCidQueryQuery, UserStatsQuery, UserStatsQueryVariables } from '../../__generated__/graphql';
 import Error from '../../components/error/Error';
 import UserStatsCards, { USER_STATS_FRAGMENT } from '../../components/user-stats-cards/UserStatsCards';
-import { defaultGetServerSideProps, PageProps } from '../../util';
+import { createTitle, defaultGetServerSideProps, formatNick, PageProps } from '../../util';
 
 import styles from './[cid].module.scss';
 
@@ -34,12 +35,17 @@ const UserStats: NextPage<PageProps<UserStatsQuery>> = ({ data }) => {
   }
 
   return (
-    <div className={styles.showSection}>
-      <h1>{data.user.nick}</h1>
-      <div className={styles.showSectionF}>
-        <UserStatsCards user={data.user} />
+    <>
+      <Head>
+        <title>{createTitle(formatNick(data.user.cid, data.user.nick))}</title>
+      </Head>
+      <div className={styles.showSection}>
+        <h1>{data.user.nick}</h1>
+        <div className={styles.showSectionF}>
+          <UserStatsCards user={data.user} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

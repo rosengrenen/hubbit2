@@ -84,8 +84,6 @@ export const defaultGetServerSideProps = <
         case GqlError.NOT_LOGGED_IN:
           redirect = authRedirect(context.resolvedUrl);
           break;
-        default:
-          console.log(error);
       }
     }
 
@@ -123,3 +121,7 @@ export const formatNick = (cid: string, nick: string) => {
       return nick;
   }
 };
+
+export function createTitle(title: string) {
+  return `${title} | HubbIT`;
+}

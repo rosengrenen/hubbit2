@@ -2,6 +2,7 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { GetServerSidePropsContext, NextPage } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 import { StatsMonthQuery } from '../../../__generated__/graphql';
@@ -12,7 +13,7 @@ import StatsTable, {
   STATS_TABLE_STAT_FRAGMENT,
 } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_MONTH_QUERY = gql`
   query StatsMonth($input: StatsMonthInput) {
@@ -43,27 +44,36 @@ const STATS_MONTH_QUERY = gql`
 `;
 
 const StatsMonth: NextPage<PageProps<StatsMonthQuery>> = ({ data }) => {
-  const router = useRouter();
+  const { pathname: path } = useRouter();
 
   if (!data) {
     return <Error />;
   }
 
-  const path = router.pathname;
+  const monthFormatted = new Date(data.statsMonth.curr.year, data.statsMonth.curr.month, 0, 0, 0).toLocaleString(
+    'default',
+    {
+      month: 'long',
+    },
+  );
+  const monthYearFormatted = `${monthFormatted} ${data.statsMonth.curr.year}`;
 
   return (
-    <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={MONTH} />
-      <StatsTimespanSelect
-        // TODO(Vidarm): Show date-span here when implemented in BE.
-        current={`${new Date(data.statsMonth.curr.year, data.statsMonth.curr.month, 0, 0, 0).toLocaleString('default', {
-          month: 'long',
-        })} ${data.statsMonth.curr.year}`}
-        prev={`${path}?year=${data.statsMonth.prev.year}&month=${data.statsMonth.prev.month}`}
-        next={`${path}?year=${data.statsMonth.next.year}&month=${data.statsMonth.next.month}`}
-      />
-      <StatsTable stats={data.statsMonth.stats} me={data.me} />
-    </div>
+    <>
+      <Head>
+        <title>{createTitle(`Stats for ${monthYearFormatted}`)}</title>
+      </Head>
+      <div className={'statsWrapper'}>
+        <StatsNavigation activeFrame={MONTH} />
+        <StatsTimespanSelect
+          // TODO(Vidarm): Show date-span here when implemented in BE.
+          current={monthYearFormatted}
+          prev={`${path}?year=${data.statsMonth.prev.year}&month=${data.statsMonth.prev.month}`}
+          next={`${path}?year=${data.statsMonth.next.year}&month=${data.statsMonth.next.month}`}
+        />
+        <StatsTable stats={data.statsMonth.stats} me={data.me} />
+      </div>
+    </>
   );
 };
 

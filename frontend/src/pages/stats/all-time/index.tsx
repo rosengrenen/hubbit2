@@ -2,6 +2,7 @@ import React from 'react';
 
 import { gql } from '@urql/core';
 import { NextPage } from 'next';
+import Head from 'next/head';
 
 import { StatsAlltimeQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
@@ -10,7 +11,7 @@ import StatsTable, {
   STATS_TABLE_ME_FRAGMENT,
   STATS_TABLE_STAT_FRAGMENT,
 } from '../../../components/stats-table/StatsTable';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { createTitle, defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_ALL_TIME_QUERY = gql`
   query StatsAlltime {
@@ -32,10 +33,15 @@ const AllTime: NextPage<PageProps<StatsAlltimeQuery>> = ({ data }) => {
   }
 
   return (
-    <div className={'statsWrapper'}>
-      <StatsNavigation activeFrame={ALL_TIME} />
-      <StatsTable stats={data.statsAlltime} me={data.me} hideChange={true} />
-    </div>
+    <>
+      <Head>
+        <title>{createTitle(`Stats since beginning`)}</title>
+      </Head>
+      <div className="statsWrapper">
+        <StatsNavigation activeFrame={ALL_TIME} />
+        <StatsTable stats={data.statsAlltime} me={data.me} hideChange={true} />
+      </div>
+    </>
   );
 };
 
