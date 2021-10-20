@@ -66,7 +66,7 @@ const StatsTable = ({ stats, me, hideChange = false }: Props) => (
               )}
               <td className="position-column">{index + 1}</td>
               <td className="name-column">
-                <Link href={`/user/${stat.user.cid}`}>
+                <Link href={`/users/${stat.user.cid}`}>
                   <a>{nick}</a>
                 </Link>
               </td>
