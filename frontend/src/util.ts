@@ -49,7 +49,7 @@ export const authRedirect = (path: string): Redirect => ({
 });
 
 export interface PageProps<T> {
-  data?: T;
+  data: T | null;
 }
 
 export const defaultGetServerSideProps = <
@@ -89,7 +89,7 @@ export const defaultGetServerSideProps = <
 
     return {
       props: {
-        data,
+        data: data ? data : null,
       },
       redirect,
     };

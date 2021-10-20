@@ -7,6 +7,7 @@ services:
     environment:
       PORT: ${FRONTEND_PORT}
       PROXY: http://localhost:${BACKEND_PORT}
+      BACKEND_ADDRESS: http://localhost:${BACKEND_PORT}
     network_mode: host
     volumes:
       - ./frontend:/usr/src/app
