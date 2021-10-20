@@ -66,7 +66,6 @@ const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
     },
     (_prev, data) => {
       if (data && !sessions.find(session => session.user.id === data.userJoin.user.id)) {
-        console.log(data);
         setSessions(sessions => [...sessions, data.userJoin]);
       }
       return data;
@@ -78,7 +77,6 @@ const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
     },
     (_prev, data) => {
       if (data) {
-        console.log(data);
         setSessions(sessions => sessions.filter(session => session.user.id !== data.userLeave.id));
       }
       return data;

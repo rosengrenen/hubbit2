@@ -1,6 +1,6 @@
 FROM node:lts
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 ENV NODE_ENV=development
 
