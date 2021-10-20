@@ -7,25 +7,29 @@ import { useRouter } from 'next/router';
 import { StatsStudyYearQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
 import { StatsNavigation, STUDY_YEAR } from '../../../components/stats-navigation/StatsNavigation';
-import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
+import StatsTable, {
+  STATS_TABLE_ME_FRAGMENT,
+  STATS_TABLE_STAT_FRAGMENT,
+} from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
 import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_YEAR_QUERY = gql`
-    query StatsStudyYear($input: StatsStudyYearInput) {
-        statsStudyYear(input: $input) {
-            stats {
-                ...StatsTable
-            }
-            year
-        }
-
-        me {
-            cid
-        }
-
-        ${STATS_TABLE_FRAGMENT}
+  query StatsStudyYear($input: StatsStudyYearInput) {
+    statsStudyYear(input: $input) {
+      stats {
+        ...StatsTableStat
+      }
+      year
     }
+
+    me {
+      ...StatsTableMe
+    }
+  }
+
+  ${STATS_TABLE_STAT_FRAGMENT}
+  ${STATS_TABLE_ME_FRAGMENT}
 `;
 
 const StudyYear: NextPage<PageProps<StatsStudyYearQuery>> = ({ data }) => {
@@ -49,7 +53,7 @@ const StudyYear: NextPage<PageProps<StatsStudyYearQuery>> = ({ data }) => {
         prev={`${path}?year=${prevYear}`}
         next={`${path}?year=${nextYear}`}
       />
-      <StatsTable stats={data.statsStudyYear.stats} myCid={data.me.cid} />
+      <StatsTable stats={data.statsStudyYear.stats} me={data.me} />
     </div>
   );
 };

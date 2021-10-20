@@ -1,15 +1,27 @@
 import React from 'react';
 
-import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { gql } from '@urql/core';
+
+import { ActiveUserFragment } from '../../__generated__/graphql';
 import { formatNick } from '../../util';
 
-import styles from './ActiveUsersList.module.scss';
+import styles from './ActiveUserList.module.scss';
 
-interface props {
-  sessions: CurrentSessionsQuery['currentSessions'];
+export const ACTIVE_USER_FRAGMENT = gql`
+  fragment ActiveUser on ActiveSession {
+    user {
+      cid
+      nick
+    }
+    startTime
+  }
+`;
+
+interface Props {
+  sessions: ActiveUserFragment[];
 }
 
-const ActiveUsersList = ({ sessions }: props) => {
+const ActiveUserList = ({ sessions }: Props) => {
   const currTime: Date = new Date(Date.now());
 
   return (
@@ -18,7 +30,7 @@ const ActiveUsersList = ({ sessions }: props) => {
         There are {sessions.length} smurfs in the Hubb right now!
         <table className={'data-table card-shadow ' + styles.activeSmurfsTable}>
           <thead>
-            <tr className={'header-row'}>
+            <tr className="header-row">
               <th className={styles.userRow}>User</th>
               <th className={styles.statusRow}>Current Status</th>
             </tr>
@@ -28,7 +40,7 @@ const ActiveUsersList = ({ sessions }: props) => {
               const startTime = new Date(session.startTime);
 
               return (
-                <tr key={session.user.nick} className={'data-table-row'}>
+                <tr key={session.user.nick} className="data-table-row">
                   <td className={styles.userRow}>
                     <a href={`/user/${session.user.cid}`}>{formatNick(session.user.cid, session.user.nick)}</a>
                   </td>
@@ -62,4 +74,4 @@ function getHoursDiff(a: Date, b: Date): string {
   return `(${Math.round(diffTime / oneMinute)} minutes)`;
 }
 
-export default ActiveUsersList;
+export default ActiveUserList;

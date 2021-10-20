@@ -7,47 +7,47 @@ import { useRouter } from 'next/router';
 import { StatsMonthQuery, StatsWeekQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
 import { StatsNavigation, WEEK } from '../../../components/stats-navigation/StatsNavigation';
-import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
+import StatsTable, {
+  STATS_TABLE_ME_FRAGMENT,
+  STATS_TABLE_STAT_FRAGMENT,
+} from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
 import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_WEEK_QUERY = gql`
-    query StatsWeek($input: StatsWeekInput) {
-        statsWeek(input: $input) {
-            stats{
-                ...StatsTable
-            }
-
-            curr{
-                year
-                week
-            }
-            next{
-                year
-                week
-            }
-            prev{
-                year
-                week
-            }
-        }
-
-        me {
-            cid
-        }
-
-        ${STATS_TABLE_FRAGMENT}
+  query StatsWeek($input: StatsWeekInput) {
+    statsWeek(input: $input) {
+      stats {
+        ...StatsTableStat
+      }
+      curr {
+        year
+        week
+      }
+      next {
+        year
+        week
+      }
+      prev {
+        year
+        week
+      }
     }
+    me {
+      ...StatsTableMe
+    }
+  }
+
+  ${STATS_TABLE_STAT_FRAGMENT}
+  ${STATS_TABLE_ME_FRAGMENT}
 `;
 
 const StatsWeek: NextPage<PageProps<StatsWeekQuery>> = ({ data }) => {
-  const router = useRouter();
+  const { pathname: path } = useRouter();
 
   if (!data) {
     return <Error />;
   }
-
-  const path = router.pathname;
 
   return (
     <div className={'statsWrapper'}>
@@ -58,7 +58,7 @@ const StatsWeek: NextPage<PageProps<StatsWeekQuery>> = ({ data }) => {
         prev={`${path}?year=${data.statsWeek.prev.year}&week=${data.statsWeek.prev.week}`}
         next={`${path}?year=${data.statsWeek.next.year}&week=${data.statsWeek.next.week}`}
       />
-      <StatsTable stats={data.statsWeek.stats} myCid={data.me.cid} />
+      <StatsTable stats={data.statsWeek.stats} me={data.me} />
     </div>
   );
 };

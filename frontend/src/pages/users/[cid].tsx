@@ -5,7 +5,7 @@ import { NextPage } from 'next';
 
 import { MeCidQueryQuery, UserStatsQuery, UserStatsQueryVariables } from '../../__generated__/graphql';
 import Error from '../../components/error/Error';
-import UserStatsCards from '../../components/user-stats-cards/UserStatsCards';
+import UserStatsCards, { USER_STATS_FRAGMENT } from '../../components/user-stats-cards/UserStatsCards';
 import { defaultGetServerSideProps, PageProps } from '../../util';
 
 import styles from './[cid].module.scss';
@@ -13,24 +13,11 @@ import styles from './[cid].module.scss';
 const USER_STATS_QUERY = gql`
   query UserStats($input: UserUniqueInput!) {
     user(input: $input) {
-      longestSession {
-        startTime
-        endTime
-      }
-      recentSessions {
-        startTime
-        endTime
-      }
-      hourStats
-      cid
-      nick
-      totalTimeSeconds
-      longestSession {
-        startTime
-        endTime
-      }
+      ...UserStats
     }
   }
+
+  ${USER_STATS_FRAGMENT}
 `;
 
 const ME_CID_QUERY = gql`
@@ -50,7 +37,7 @@ const UserStats: NextPage<PageProps<UserStatsQuery>> = ({ data }) => {
     <div className={styles.showSection}>
       <h1>{data.user.nick}</h1>
       <div className={styles.showSectionF}>
-        <UserStatsCards userStats={data.user} />
+        <UserStatsCards user={data.user} />
       </div>
     </div>
   );

@@ -4,8 +4,8 @@ import { gql } from '@urql/core';
 import { NextPage } from 'next';
 
 import { CurrentSessionsQuery } from '../__generated__/graphql';
-import ActiveGroupsList from '../components/active-group-list/ActiveGroupsList';
-import ActiveUsersList from '../components/active-users-list/ActiveUsersList';
+import ActiveGroupList, { ACTIVE_GROUP_FRAGMENT } from '../components/active-group-list/ActiveGroupsList';
+import ActiveUserList, { ACTIVE_USER_FRAGMENT } from '../components/active-users-list/ActiveUserList';
 import Error from '../components/error/Error';
 import { defaultGetServerSideProps, PageProps } from '../util';
 
@@ -14,16 +14,13 @@ import styles from './index.module.scss';
 const CURRENT_SESSIONS_QUERY = gql`
   query CurrentSessions {
     currentSessions {
-      user {
-        id
-        cid
-        nick
-        avatarUrl
-        groups
-      }
-      startTime
+      ...ActiveUser
+      ...ActiveGroup
     }
   }
+
+  ${ACTIVE_USER_FRAGMENT}
+  ${ACTIVE_GROUP_FRAGMENT}
 `;
 
 const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
@@ -33,8 +30,8 @@ const Home: NextPage<PageProps<CurrentSessionsQuery>> = ({ data }) => {
 
   return (
     <div className={styles.sessionsContainer}>
-      <ActiveUsersList sessions={data.currentSessions} />
-      <ActiveGroupsList sessions={data.currentSessions} />
+      <ActiveUserList sessions={data.currentSessions} />
+      <ActiveGroupList sessions={data.currentSessions} />
     </div>
   );
 };

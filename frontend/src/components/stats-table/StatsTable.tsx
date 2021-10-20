@@ -3,19 +3,19 @@ import React from 'react';
 import { gql } from '@urql/core';
 import Link from 'next/link';
 
-import { Maybe, StatsTableFragment } from '../../__generated__/graphql';
+import { Maybe, StatsTableMeFragment, StatsTableStatFragment } from '../../__generated__/graphql';
 import { formatNick } from '../../util';
 
 import styles from './StatsTable.module.scss';
 
 interface Props {
-  stats: StatsTableFragment[];
-  myCid: string;
+  stats: StatsTableStatFragment[];
+  me: StatsTableMeFragment;
   hideChange?: boolean;
 }
 
-export const STATS_TABLE_FRAGMENT = gql`
-  fragment StatsTable on Stat {
+export const STATS_TABLE_STAT_FRAGMENT = gql`
+  fragment StatsTableStat on Stat {
     currentPosition
     durationSeconds
     prevPosition
@@ -26,15 +26,21 @@ export const STATS_TABLE_FRAGMENT = gql`
   }
 `;
 
-const StatsTable = ({ stats, myCid, hideChange = false }: Props) => (
+export const STATS_TABLE_ME_FRAGMENT = gql`
+  fragment StatsTableMe on User {
+    cid
+  }
+`;
+
+const StatsTable = ({ stats, me, hideChange = false }: Props) => (
   <div>
-    <a href={`#${myCid}`}>Find me!</a>
-    <table className={'data-table card-shadow'}>
+    <a href={`#${me.cid}`}>Find me!</a>
+    <table className="data-table card-shadow">
       <thead>
-        <tr className={'header-row'}>
+        <tr className="header-row">
           {!hideChange && <th>Change</th>}
-          <th className={'position-column'}>#</th>
-          <th className={'name-column'}>Name</th>
+          <th className="position-column">#</th>
+          <th className="name-column">Name</th>
           <th>Total time</th>
         </tr>
       </thead>
@@ -46,20 +52,20 @@ const StatsTable = ({ stats, myCid, hideChange = false }: Props) => (
             <tr
               key={stat.user.cid}
               id={stat.user.cid}
-              className={`data-table-row ${stat.user.cid === myCid ? 'active-row' : ''}`}
+              className={`data-table-row ${stat.user.cid === me.cid ? 'active-row' : ''}`}
             >
               {!hideChange && (
                 <td>
                   <img
                     title={getChangeTitle(stat.currentPosition, stat.prevPosition)}
                     src={getChangeImageName(stat.currentPosition, stat.prevPosition)}
-                    alt={'position change icon'}
+                    alt="position change icon"
                     className={styles.changeIcon}
                   />
                 </td>
               )}
-              <td className={'position-column'}>{index + 1}</td>
-              <td className={'name-column'}>
+              <td className="position-column">{index + 1}</td>
+              <td className="name-column">
                 <Link href={`/user/${stat.user.cid}`}>
                   <a>{nick}</a>
                 </Link>
@@ -112,7 +118,7 @@ function convertSecondsToString(totalSeconds: number): string {
 }
 
 function numToStr(num: number): string {
-  return ('' + num).padStart(2, '0');
+  return num.toString().padStart(2, '0');
 }
 
 export default StatsTable;

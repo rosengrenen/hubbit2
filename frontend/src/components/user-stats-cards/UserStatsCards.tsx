@@ -1,8 +1,9 @@
 import React from 'react';
 
+import { gql } from '@urql/core';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { UserStatsQuery } from '../../__generated__/graphql';
+import { UserStatsFragment, UserStatsQuery } from '../../__generated__/graphql';
 import {
   dateDiffToAgoString,
   dateDiffToString,
@@ -15,21 +16,42 @@ import {
 
 import styles from './UserStatsCards.module.scss';
 
-interface props {
-  userStats: UserStatsQuery['user'];
+export const USER_STATS_FRAGMENT = gql`
+  fragment UserStats on User {
+    longestSession {
+      startTime
+      endTime
+    }
+    recentSessions {
+      startTime
+      endTime
+    }
+    hourStats
+    cid
+    nick
+    totalTimeSeconds
+    longestSession {
+      startTime
+      endTime
+    }
+  }
+`;
+
+interface Props {
+  user: UserStatsFragment;
 }
 
-const UserStatsCards = ({ userStats }: props) => {
+const UserStatsCards = ({ user }: Props) => {
   let longestSessionSeconds = 0;
-  if (userStats.longestSession) {
-    const { startTime, endTime } = userStats.longestSession;
+  if (user.longestSession) {
+    const { startTime, endTime } = user.longestSession;
     const start = new Date(startTime);
     const end = new Date(endTime);
     longestSessionSeconds = (end.getTime() - start.getTime()) / 1000;
   }
 
   const hourStats = Array.from({ length: 25 }, (_, i) => i).map(hour => {
-    return parseFloat((userStats.hourStats[hour % 24] / 60).toFixed(1));
+    return parseFloat((user.hourStats[hour % 24] / 60).toFixed(1));
   });
   const maxHours = hourStats.reduce((p, c) => Math.max(p, c), 0);
   const totalHours = hourStats.reduce((p, c) => p + c, 0);
@@ -37,9 +59,9 @@ const UserStatsCards = ({ userStats }: props) => {
   return (
     <>
       <div className={styles.userStatsCardsWrapper}>
-        <UserStatsCard title="Last session" content={getLastSessionText(userStats.recentSessions)} />
-        <UserStatsCard title="Today" content={getTodayText(userStats.recentSessions)} />
-        <UserStatsCard title="Total time" content={prettyFromSeconds(userStats.totalTimeSeconds)} />
+        <UserStatsCard title="Last session" content={getLastSessionText(user.recentSessions)} />
+        <UserStatsCard title="Today" content={getTodayText(user.recentSessions)} />
+        <UserStatsCard title="Total time" content={prettyFromSeconds(user.totalTimeSeconds)} />
         <UserStatsCard title="Longest session" content={prettyFromSeconds(longestSessionSeconds)} />
       </div>
       <div className={styles.graphContainer}>
@@ -74,12 +96,12 @@ const UserStatsCards = ({ userStats }: props) => {
   );
 };
 
-interface userStatCardProps {
+interface UserStatCardProps {
   title: string;
   content: string;
 }
 
-const UserStatsCard = ({ title, content }: userStatCardProps) => (
+const UserStatsCard = ({ title, content }: UserStatCardProps) => (
   <div className={styles.infoContainer}>
     <h2 className={styles.infoHeader}>{title}</h2>
     <div className={styles.infoText}>{content}</div>

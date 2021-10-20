@@ -1,88 +1,74 @@
 import React from 'react';
 
-import { CurrentSessionsQuery } from '../../__generated__/graphql';
+import { gql } from '@urql/core';
+
+import { ActiveGroupFragment } from '../../__generated__/graphql';
 import { formatNick } from '../../util';
 
-import styles from './ActiveGroupsList.module.scss';
+import styles from './ActiveGroupList.module.scss';
 
-interface props {
-  sessions: CurrentSessionsQuery['currentSessions'];
+export const ACTIVE_GROUP_FRAGMENT = gql`
+  fragment ActiveGroup on ActiveSession {
+    user {
+      cid
+      nick
+      groups
+    }
+  }
+`;
+
+interface Props {
+  sessions: ActiveGroupFragment[];
 }
 
-interface User {
-  cid: string;
-  nick: string;
-}
-
-const ActiveGroupsList = ({ sessions }: props) => {
-  const groupsMap: Map<string, User[]> = new Map<string, User[]>();
+const ActiveGroupList = ({ sessions }: Props) => {
+  const groupsMap = new Map<string, ActiveGroupFragment['user'][]>();
   sessions.forEach(session => {
     session.user.groups.forEach(group => {
-      let users = groupsMap.get(group);
+      const users = groupsMap.get(group);
       const user = {
+        ...session.user,
         nick: formatNick(session.user.cid, session.user.nick),
-        cid: session.user.cid,
       };
       if (users) {
-        users.push(user);
+        groupsMap.set(group, [...users, user]);
       } else {
-        users = [user];
+        groupsMap.set(group, [user]);
       }
-      groupsMap.set(group, users);
     });
   });
+  const groups = Array.from(groupsMap)
+    .map(([group, users]) => {
+      return {
+        name: group,
+        users: users.sort((left, right) => left.nick.localeCompare(right.nick)),
+      };
+    })
+    .sort((left, right) => left.name.localeCompare(right.name));
 
   return (
     <div className={styles.activeGroupsContainer}>
-      {Array.from(groupsMap.keys())
-        .sort((a, b) => compareGroups(a, b, groupsMap))
-        .map(group => (
-          <div key={group} className={styles.groupBoxContainer}>
-            {/*TODO(vidarm): Rewrite without table */}
-            <table key={group} className={'data-table card-shadow '}>
-              <tbody>
-                <tr className={'header-row'} id={group}>
-                  <th>{group}</th>
+      {groups.map(group => (
+        <div key={group.name} className={styles.groupBoxContainer}>
+          {/*TODO(vidarm): Rewrite without table */}
+          <table className="data-table card-shadow">
+            <tbody>
+              <tr className="header-row" id={group.name}>
+                <th>{group.name}</th>
+              </tr>
+              {group.users.map(user => (
+                <tr key={user.cid} className="data-table-row">
+                  <td className={styles.userRow}>
+                    <a href={`user/${user.cid}`}>{user.nick}</a>
+                  </td>
                 </tr>
-                {groupsMap
-                  .get(group)
-                  ?.sort((a, b) => compareUsers(a, b))
-                  .map(user => (
-                    <tr key={user.cid} className={'data-table-row'}>
-                      <td className={styles.userRow}>
-                        <a href={`user/${user.cid}`}>{user.nick}</a>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
     </div>
   );
 };
 
-function compareGroups(groupNameA: string, groupNameB: string, groupsMap: Map<string, User[]>): number {
-  const groupA = groupsMap.get(groupNameA);
-  const groupB = groupsMap.get(groupNameB);
-
-  if (!groupB || !groupA) {
-    return 0;
-  }
-
-  if (groupA.length === groupB.length) {
-    return groupNameA.localeCompare(groupNameB);
-  }
-
-  return groupB.length - groupA.length;
-}
-
-function compareUsers(userA: User, userB: User): number {
-  if (userA.nick === userB.nick) {
-    return 0;
-  }
-
-  return userA.nick.localeCompare(userB.nick);
-}
-
-export default ActiveGroupsList;
+export default ActiveGroupList;

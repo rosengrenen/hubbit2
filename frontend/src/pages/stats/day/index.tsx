@@ -7,38 +7,42 @@ import { useRouter } from 'next/router';
 import { StatsDayQuery } from '../../../__generated__/graphql';
 import Error from '../../../components/error/Error';
 import { DAY, StatsNavigation } from '../../../components/stats-navigation/StatsNavigation';
-import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
+import StatsTable, {
+  STATS_TABLE_ME_FRAGMENT,
+  STATS_TABLE_STAT_FRAGMENT,
+} from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
 import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_DAY_QUERY = gql`
-    query StatsDay($input: StatsDayInput) {
-        statsDay(input: $input) {
-            stats {
-                ...StatsTable
-            }
-            curr {
-                year
-                month
-                day
-            }
-            next {
-                year
-                month
-                day
-            }
-            prev {
-                year
-                month
-                day
-            }
-        }
-        me {
-            cid
-        }
-
-        ${STATS_TABLE_FRAGMENT}
+  query StatsDay($input: StatsDayInput) {
+    statsDay(input: $input) {
+      stats {
+        ...StatsTableStat
+      }
+      curr {
+        year
+        month
+        day
+      }
+      next {
+        year
+        month
+        day
+      }
+      prev {
+        year
+        month
+        day
+      }
     }
+    me {
+      ...StatsTableMe
+    }
+  }
+
+  ${STATS_TABLE_STAT_FRAGMENT}
+  ${STATS_TABLE_ME_FRAGMENT}
 `;
 
 const StatsDay: NextPage<PageProps<StatsDayQuery>> = ({ data }) => {
@@ -60,7 +64,7 @@ const StatsDay: NextPage<PageProps<StatsDayQuery>> = ({ data }) => {
         prev={`${path}?year=${data.statsDay.prev.year}&month=${data.statsDay.prev.month}&day=${data.statsDay.prev.day}`}
         next={`${path}?year=${data.statsDay.next.year}&month=${data.statsDay.next.month}&day=${data.statsDay.next.day}`}
       />
-      <StatsTable stats={data.statsDay.stats} myCid={data.me.cid} />
+      <StatsTable stats={data.statsDay.stats} me={data.me} />
     </div>
   );
 };
