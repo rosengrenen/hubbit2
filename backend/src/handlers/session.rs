@@ -17,11 +17,11 @@ use crate::{
 
 #[derive(Deserialize)]
 struct SessionRequest {
-  macs: Vec<String>,
+  macs: Vec<(String, u32)>,
 }
 
 async fn update_sessions(
-  mut session_req: web::Json<SessionRequest>,
+  session_req: web::Json<SessionRequest>,
   http_req: web::HttpRequest,
   pool: web::Data<PgPool>,
 ) -> HubbitResult<HttpResponse> {
@@ -31,10 +31,12 @@ async fn update_sessions(
   let session_repo = SessionRepository::new(pool.clone());
   let user_session_repo = UserSessionRepository::new(pool);
 
-  let mac_addrs = &mut session_req.macs;
-  for mac_addr in mac_addrs.iter_mut() {
-    *mac_addr = mac_addr.to_uppercase();
-  }
+  let mut mac_addrs: Vec<String> = session_req
+    .into_inner()
+    .macs
+    .into_iter()
+    .map(|(mac, _)| mac.to_uppercase())
+    .collect();
   mac_addrs.sort_unstable();
   mac_addrs.dedup();
 
@@ -60,7 +62,7 @@ async fn update_sessions(
     return Ok(HttpResponse::Unauthorized().finish());
   };
 
-  let devices = device_repo.get_by_addrs(mac_addrs).await?;
+  let devices = device_repo.get_by_addrs(&mac_addrs).await?;
 
   let mut user_ids = devices
     .iter()
