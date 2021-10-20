@@ -8,13 +8,13 @@ import React from 'react';
 import { AppProps } from 'next/app';
 import { Provider } from 'urql';
 
-import { clientSideClient } from '../client';
+import { createClient } from '../client';
 import Footer from '../components/footer/Footer';
 import Header from '../components/header/Header';
 
 function HubbitApp({ Component, pageProps }: AppProps) {
   return (
-    <Provider value={clientSideClient}>
+    <Provider value={createClient()}>
       <div className="pageWrapper">
         <Header />
         <div className="componentWrapper">

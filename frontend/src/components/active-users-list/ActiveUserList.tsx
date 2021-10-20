@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { gql } from '@urql/core';
 
@@ -22,7 +22,35 @@ interface Props {
 }
 
 const ActiveUserList = ({ sessions }: Props) => {
-  const currTime: Date = new Date(Date.now());
+  const [currTime, setCurrTime] = useState(new Date());
+
+  useEffect(() => {
+    setCurrTime(new Date());
+    const interval = setInterval(() => {
+      setCurrTime(new Date());
+    }, 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [sessions]);
+
+  const sortedSessions = useMemo(
+    () =>
+      sessions.sort((left, right) => {
+        const leftTime = new Date(left.startTime).getTime();
+        const rightTime = new Date(right.startTime).getTime();
+
+        if (leftTime === rightTime) {
+          const leftNick = formatNick(left.user.cid, left.user.nick);
+          const rightNick = formatNick(right.user.cid, right.user.nick);
+          return leftNick.localeCompare(rightNick);
+        }
+
+        return leftTime - rightTime;
+      }),
+    [sessions],
+  );
 
   return (
     <div className={styles.activeSmurfsWrapper}>
@@ -36,7 +64,7 @@ const ActiveUserList = ({ sessions }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {sessions.map(session => {
+            {sortedSessions.map(session => {
               const startTime = new Date(session.startTime);
 
               return (
