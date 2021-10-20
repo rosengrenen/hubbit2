@@ -9,7 +9,7 @@ import Error from '../../../components/error/Error';
 import { StatsNavigation, WEEK } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
+import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_WEEK_QUERY = gql`
     query StatsWeek($input: StatsWeekInput) {
@@ -90,7 +90,4 @@ function getInputProps(context: GetServerSidePropsContext) {
   };
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsMonthQuery>(
-  STATS_WEEK_QUERY,
-  getInputProps,
-);
+export const getServerSideProps = defaultGetServerSideProps<StatsMonthQuery>(STATS_WEEK_QUERY, getInputProps);

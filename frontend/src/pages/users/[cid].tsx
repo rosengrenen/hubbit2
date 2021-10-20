@@ -3,11 +3,12 @@ import React from 'react';
 import { gql } from '@urql/core';
 import { NextPage } from 'next';
 
-import { MeCidQueryQuery, UserStatsQuery, UserStatsQueryVariables } from '../../../__generated__/graphql';
-import UserStatsCards from '../../../components/user-stats-cards/UserStatsCards';
-import { defaultGetServerSideProps, PageProps } from '../../../util';
+import { MeCidQueryQuery, UserStatsQuery, UserStatsQueryVariables } from '../../__generated__/graphql';
+import Error from '../../components/error/Error';
+import UserStatsCards from '../../components/user-stats-cards/UserStatsCards';
+import { defaultGetServerSideProps, PageProps } from '../../util';
 
-import styles from './index.module.scss';
+import styles from './[cid].module.scss';
 
 const USER_STATS_QUERY = gql`
   query UserStats($input: UserUniqueInput!) {
@@ -42,13 +43,15 @@ const ME_CID_QUERY = gql`
 
 const UserStats: NextPage<PageProps<UserStatsQuery>> = ({ data }) => {
   if (!data) {
-    return null;
+    return <Error />;
   }
 
   return (
     <div className={styles.showSection}>
       <h1>{data.user.nick}</h1>
-      <UserStatsCards userStats={data.user} />
+      <div className={styles.showSectionF}>
+        <UserStatsCards userStats={data.user} />
+      </div>
     </div>
   );
 };
@@ -74,7 +77,7 @@ export const getServerSideProps = defaultGetServerSideProps<UserStatsQuery, User
       const { data } = await client.query<MeCidQueryQuery>(ME_CID_QUERY).toPromise();
       if (data) {
         return {
-          destination: `/stats/${data.me.cid}`,
+          destination: `/users/${data.me.cid}`,
           permanent: false,
         };
       }

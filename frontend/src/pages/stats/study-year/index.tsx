@@ -9,7 +9,7 @@ import Error from '../../../components/error/Error';
 import { StatsNavigation, STUDY_YEAR } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
+import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_YEAR_QUERY = gql`
     query StatsStudyYear($input: StatsStudyYearInput) {
@@ -74,7 +74,4 @@ function getInputProps(context: GetServerSidePropsContext) {
   };
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsStudyYearQuery>(
-  STATS_STUDY_YEAR_QUERY,
-  getInputProps,
-);
+export const getServerSideProps = defaultGetServerSideProps<StatsStudyYearQuery>(STATS_STUDY_YEAR_QUERY, getInputProps);

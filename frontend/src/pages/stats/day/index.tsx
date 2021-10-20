@@ -9,7 +9,7 @@ import Error from '../../../components/error/Error';
 import { DAY, StatsNavigation } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
+import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_DAY_QUERY = gql`
     query StatsDay($input: StatsDayInput) {
@@ -17,7 +17,6 @@ const STATS_DAY_QUERY = gql`
             stats {
                 ...StatsTable
             }
-
             curr {
                 year
                 month
@@ -34,7 +33,6 @@ const STATS_DAY_QUERY = gql`
                 day
             }
         }
-
         me {
             cid
         }
@@ -101,7 +99,4 @@ function getInputProps(context: GetServerSidePropsContext) {
   };
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsDayQuery>(
-  STATS_DAY_QUERY,
-  getInputProps,
-);
+export const getServerSideProps = defaultGetServerSideProps<StatsDayQuery>(STATS_DAY_QUERY, getInputProps);

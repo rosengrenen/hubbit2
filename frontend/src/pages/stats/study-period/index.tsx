@@ -9,7 +9,7 @@ import Error from '../../../components/error/Error';
 import { StatsNavigation, STUDY_PERIOD } from '../../../components/stats-navigation/StatsNavigation';
 import StatsTable, { STATS_TABLE_FRAGMENT } from '../../../components/stats-table/StatsTable';
 import { StatsTimespanSelect } from '../../../components/stats-timespan-select/StatsTimespanSelect';
-import { defaultGetServerSidePropsWithCallbackInput, PageProps } from '../../../util';
+import { defaultGetServerSideProps, PageProps } from '../../../util';
 
 const STATS_STUDY_PERIOD_QUERY = gql`
     query StatsStudyPeriod($input: StatsStudyPeriodInput) {
@@ -111,7 +111,7 @@ function parseStudyPeriod(studyPeriodString: string): Period | undefined {
   }
 }
 
-export const getServerSideProps = defaultGetServerSidePropsWithCallbackInput<StatsStudyPeriodQuery>(
+export const getServerSideProps = defaultGetServerSideProps<StatsStudyPeriodQuery>(
   STATS_STUDY_PERIOD_QUERY,
   getInputProps,
 );

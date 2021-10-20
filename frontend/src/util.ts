@@ -84,6 +84,8 @@ export const defaultGetServerSideProps = <
         case GqlError.NOT_LOGGED_IN:
           redirect = authRedirect(context.resolvedUrl);
           break;
+        default:
+          console.log(error);
       }
     }
 

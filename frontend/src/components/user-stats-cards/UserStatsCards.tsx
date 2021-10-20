@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Area, AreaChart, CartesianGrid, Label, ResponsiveContainer, Text, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { UserStatsQuery } from '../../__generated__/graphql';
 import {

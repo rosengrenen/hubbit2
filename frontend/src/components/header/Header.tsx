@@ -8,8 +8,8 @@ import styles from './Header.module.scss';
 const MAIN_ENDPOINT = '/';
 const ME_ENDPOINT = '/me';
 const STATS_BASE_ENDPOINT = '/stats/';
-const MY_STATS_BASE_ENDPOINT = '/user/';
-const USER_STATS_ME_ENDPOINT = '/user/me';
+const MY_STATS_BASE_ENDPOINT = '/users/';
+const USER_STATS_ME_ENDPOINT = '/users/me';
 
 const Header = () => {
   const { pathname } = useRouter();
