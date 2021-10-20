@@ -59,7 +59,7 @@ const ActiveGroupList = ({ sessions }: Props) => {
               {group.users.map(user => (
                 <tr key={user.cid} className="data-table-row">
                   <td className={styles.userRow}>
-                    <a href={`user/${user.cid}`}>{user.nick}</a>
+                    <a href={`/users/${user.cid}`}>{user.nick}</a>
                   </td>
                 </tr>
               ))}
