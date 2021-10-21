@@ -3,15 +3,17 @@ use actix_web::{
   HttpResponse,
 };
 use actix_web_httpauth::headers::authorization::{Bearer, Scheme};
+use chrono::Local;
 use log::warn;
 use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::{
+  config::Config,
   error::HubbitResult,
   repositories::{
     api_key::ApiKeyRepository, device::DeviceRepository, session::SessionRepository,
-    user_session::UserSessionRepository,
+    user::UserRepository, user_session::UserSessionRepository,
   },
 };
 
@@ -21,6 +23,7 @@ struct SessionRequest {
 }
 
 async fn update_sessions(
+  config: web::Data<Config>,
   session_req: web::Json<SessionRequest>,
   http_req: web::HttpRequest,
   pool: web::Data<PgPool>,
@@ -77,6 +80,18 @@ async fn update_sessions(
       warn!("[Update sessions] Could not update user sessions");
       e
     })?;
+
+  // Temporary logging
+  {
+    let addrs = mac_addrs.join(", ");
+    println!("Raw addrs: {}", addrs);
+
+    for device in devices.iter() {
+      let user_repo = UserRepository::new(Config::clone(&config));
+      let user = user_repo.get(device.user_id.to_string()).await.unwrap();
+      println!("Person: {} {} {}", user.cid, user.nick, device.address);
+    }
+  }
 
   let devices = devices
     .into_iter()
