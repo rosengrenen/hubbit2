@@ -68,7 +68,7 @@ const ActiveUserList = ({ sessions }: Props) => {
               const startTime = new Date(session.startTime);
 
               return (
-                <tr key={session.user.nick} className="data-table-row">
+                <tr key={session.user.cid} className="data-table-row">
                   <td className={styles.userRow}>
                     <a href={`/users/${session.user.cid}`}>{formatNick(session.user.cid, session.user.nick)}</a>
                   </td>
@@ -94,7 +94,7 @@ const oneHour = 1000 * 60 * 60;
 const oneMinute = 1000 * 60;
 function getHoursDiff(a: Date, b: Date): string {
   const diffTime = Math.abs(a.getTime() - b.getTime());
-  const diffHours = Math.round(diffTime / oneHour);
+  const diffHours = Math.floor(diffTime / oneHour);
   if (diffHours >= 1) {
     return `(${diffHours} hours)`;
   }
