@@ -135,7 +135,7 @@ const DeviceList = ({ initialDevices }: Props) => {
       </button>
       <button
         className={styles.saveButton}
-        disabled={!devices.some(device => device.unsavedChanges)}
+        disabled={initialDevices.length === devices.length && !devices.some(device => device.unsavedChanges)}
         onClick={() => {
           updateDevices({
             input: {
